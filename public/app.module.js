@@ -2,7 +2,7 @@
 		'ui.router', 
 		'ngResource', 
 		'ngMaterial',
-		'ngMessages',
+		'ngMessages'
 	])
 	
 	.provider('sidebarMenu', function SidebarMenuProvider() {
