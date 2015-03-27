@@ -1,0 +1,37 @@
+﻿<h1>New loan</h1>
+
+<form name="loanForm">
+	<h3>General loan information</h3>
+	
+	<md-input-container>
+		<label>Loan product</label>
+		<input ng-model="loan.product">
+	</md-input-container>
+	<!-- The loan product selected for a loan sets the Type, Operating Unit and Loan Currency to be used with the loan product. -->
+	<md-input-container><label>Class (Direct | ERS Loan)</label><input ng-model="loan.class"></md-input-container>
+	<md-input-container><label>Type</label><input ng-model="loan.type"></md-input-container>
+	<md-input-container><label>Operating unit</label><input ng-model="loan.operatingUnit"></md-input-container>
+	<md-input-container><label>Currency</label><input ng-model="loan.currency"></md-input-container>
+	
+	<md-input-container><label>Legal Entity</label><input ng-model="loan.legalEntity"></md-input-container>
+	<md-input-container><label>Application Date</label><input ng-model="loan.applicationDate"></md-input-container>
+	<md-input-container><label>Purpose</label><input ng-model="loan.purpose"></md-input-container>
+	<md-input-container><label>Loan Officer</label><input ng-model="loan.officer"></md-input-container>
+	
+	<h3>Borrower information</h3>
+	
+	<h3>Loan details</h3>
+	<md-input-container><label>Requested Amount</label><input ng-model="loan.requestedAmount"></md-input-container>
+	<md-input-container><label>Term Start Date</label><input ng-model="loan.termStartDate"></md-input-container>
+	<md-input-container><label>Term</label><input ng-model="loan.term"></md-input-container>
+	<md-input-container><label>Balloon Payment Type</label><input ng-model="loan.balloonPaymentType"></md-input-container>
+	<p>When creating a loan with a term type balloon payment, enter a balloon term that is longer than or equal to the loan term. When creating a loan with an amount type balloon payment, enter a balloon amount greater than the requested loan amount.</p>
+	<md-input-container>
+		<label>Subtype</label>
+		<input ng-model="loan.subtype">
+			<md-tooltip>Subtype indicates whether the loan is secured by collateral. If you select Secured, enter the loan-to-value ratio required for the loan in Collateral Percentage.</md-tooltip>
+		</input>
+	</md-input-container>
+	
+	<h3>Rates</h3>
+</form>

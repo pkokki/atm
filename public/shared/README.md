@@ -1,0 +1,1 @@
+﻿Acts as reusable components or partials of our site

@@ -1,0 +1,81 @@
+﻿<md-tabs>
+	<md-tab id="tab1" aria-controls="tab1-content" label="Overview">
+		<h2>Summary</h2>
+		<p>Basic loan information including loan start date, loan class and type, term, loan amount, and loan officer for the loan.</p>
+		
+		<h2>Payment Overview</h2>
+		<md-tabs>
+			<md-tab label="Summary">
+				<p>This section details the remaining amount and number of payments for the loan as well as the amounts of principal, interest and fees paid since the loan began.</p>
+			</md-tab>
+			<md-tab label="Next Payment">
+				<p>The Paid On Time Amount is the total amount of principal, interest, and fees due if the payment for this bill is received by the due date.</p>
+			</md-tab>
+			<md-tab label="Overdue Payment">
+				<p>This section shows the total amount of overdue principal, interest and fees as of the last billing cycle, the date of the oldest overdue payment and the number of overdue payments. The Last Payment Amount represents the last receipt posted against a single transaction, so if you generate multiple transactions for principal, interest and fees, this amount only reflects the last of these transactions to be paid.</p>
+			</md-tab>
+			<md-tab label="Year to Date">
+				<p>Total amounts paid by the borrower for principal, interest, and fees for the current calendar year.</p>
+			</md-tab>
+			<md-tab label="Last Year">
+				<p>Total amounts paid by the borrower for principal, interest, and fees in the previous calendar year.</p>
+			</md-tab>
+		</md-tabs>
+		
+		<h2>Payment History</h2>
+		<p>In Payment History, you can view bills, credited bills, and payments received for the loan.</p>
+		<p><table class="table">
+			<thead>
+				<tr>
+					<th>Payment Number</th>
+					<th>Due Date</th>
+					<th>Paid Date</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>##</td>
+					<td>##/##/####</td>
+					<td>##/##/####</td>
+					<td><md-button ng-href="#/lms/loan/{{loan_id}}/payments/{{tmp_id}}">billing details</md-button></td>
+				</tr>
+			</tbody>
+		</table></p>
+		<p>You can view or print a statement for a loan payment. Loan statements provide information about the loan, borrower, paid amounts, and amounts due, in addition to delinquency details such as overdue amounts and the number of missed or short payments. Loans derives this information by reviewing all payments that are billed and due by the statement date, but have not yet been fully paid. Loans automatically generates statements for each installment when the LNS: Billing programs is run.</p>
+		<p>Select Include Credited Bills to display bills that have been reversed.</p>
+		<p>Principal Balance shows the latest outstanding balance.</p>
+		<p>See also: Viewing Payment History, page 4-12.</p>
+		<p>See also: Overview of Loan Billing, page 5-1.</p>
+		
+		
+	</md-tab>
+	<md-tab id="tab2" aria-controls="tab2-content" label="Loan History">
+		<p>Loan History shows events that have occurred over the life of a loan, including loan creation, approval processing, and changes in loan status.</p>
+		<p><table class="table">
+			<thead>
+				<tr>
+					<th>Date of change</th>
+					<th>Loan agent who made the change</th>
+					<th>Role of agent</th>
+					<th>Change event that occurred for the loan, showing the original and new value</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>##/##/####</td>
+					<td>########</td>
+					<td>########</td>
+					<td>original value --> new value</td>
+				</tr>
+			</tbody>
+		</table></p>
+	</md-tab>
+	<md-tab id="tab3" aria-controls="tab3-content" label="Comments">
+		page 2-18
+	</md-tab>
+	<md-tab id="tab4" aria-controls="tab4-content" label="Related Loans">
+		page 2-18
+	</md-tab>
+</md-tabs>
+

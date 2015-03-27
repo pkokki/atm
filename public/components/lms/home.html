@@ -1,0 +1,67 @@
+﻿<h1>Home</h1>
+
+<h2>Search for specific loan</h2>
+
+<md-input-container>
+	<label>Loan identifier</label>
+	<input name="description" ng-model="loan_id">
+</md-input-container>
+
+<md-button class="md-raised" ng-href="#/lms/loan/{{loan_id}}">Loan overview</md-button>
+&nbsp;&nbsp;&nbsp;
+<md-button class="md-raised" ng-href="#/lms/loan/{{loan_id}}/payments">Loan payments</md-button>
+
+<h2>Notifications</h2>
+
+<p>2-27</p>
+
+<h2>Loans</h2>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>Loan Number</th>
+			<th>Requested Amount</th>
+			<th>Loan Amount</th>
+			<th>Currency</th>
+			<th>Status</th>
+			<th>Start Date</th>
+			<th>Operating Unit</th>
+		</tr>
+	</thead>
+</table>
+
+<p>You can personalize the group of loans displayed on the dashboard to match
+criteria you select. You can change the number of loans displayed and specify
+parameters to filter the loans displayed. For example, you could personalize your
+view of loans to show only active loans over a certain amount.</p>
+
+<h2>View a borrower summary</h2>
+
+<p>2-18</p>
+
+<h2>Create a new loan application</h2>
+
+<p>Creating a loan involves two processes: (1) Creating the loan application, (2) Updating a Loan</p>
+
+<md-button class="md-raised" ng-href="#/lms/loan/new">Create Loan</md-button>
+
+<h2>Update an existing loan application</h2>
+
+<p>2-10</p>
+
+<h2>Delete an incomplete loan application</h2>
+
+<p>?</p>
+
+<h2>View graphs showing loans grouped by status and value</h2>
+
+<p>?</p>
+
+<h2>Submit and view concurrent requests and reports</h2>
+
+<p>?</p>
+
+<h2>Navigate easily to main tasks areas through container links and tabs</h2>
+
+<p>?</p>

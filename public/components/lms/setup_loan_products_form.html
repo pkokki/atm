@@ -1,0 +1,72 @@
+﻿<h1>{{ id || "New product" }}</h2>
+
+
+<form name="productForm">
+	<md-tabs >
+		<md-tab label="General">
+			<md-input-container ng-class="{'md-input-has-value': item.type}">
+				<label>Type</label>
+				<md-select placeholder="Pick a type" ng-model="item.type">
+						<md-option value="1">Type One</md-option>
+						<md-option value="2">Type Two</md-option>
+				</md-select>
+			</md-input-container>
+			
+			<md-input-container><label>Name</label><input ng-model="item.name"></md-input-container>
+			<md-input-container><label>Code</label><input ng-model="item.code"></md-input-container>
+			<md-input-container><label>Description</label><input ng-model="item.description"></md-input-container>
+			<md-input-container><label>Currency</label><input ng-model="item.currency"></md-input-container>
+			<md-input-container><label>Segment</label><input ng-model="item.segment"></md-input-container>
+			<md-input-container><label>Start date</label><input ng-model="item.startDate"></md-input-container>
+			<md-input-container><label>End date</label><input ng-model="item.endDate"></md-input-container>
+		</md-tab>
+		<md-tab label="Terms">
+			<md-input-container><label>Requested amount from</label><input ng-model="item.requestedAmountFrom"></md-input-container>
+			<md-input-container><label>Requested amount to</label><input ng-model="item.requestedAmountTo"></md-input-container>
+			
+			<md-input-container><label>Term range from</label><input ng-model="item.termRangeFrom"></md-input-container>
+			<md-input-container><label>Term range to</label><input ng-model="item.termRangeTo"></md-input-container>
+			<md-checkbox ng-model="item.disableTermRangeUpdates">Disable term range updates</md-checkbox>
+			<md-checkbox ng-model="item.requireLoanApproval">Require loan approval</md-checkbox>
+			<md-checkbox ng-model="item.requireApprovalToCancelDisbursements">Require approval to cancel disbursements</md-checkbox>
+		</md-tab>
+		<md-tab label="Interest rates">
+			<p>Note: Select Enable Update to allow loan agents to modify a parameter when creating a loan application.</p>
+			
+			<md-input-container><label>Index name</label><input ng-model="item.indexName"></md-input-container>
+			<md-input-container><label>Interest accrual frequency</label><input ng-model="item.interestAccrualFrequency"></md-input-container>
+			<md-input-container><label>Rate type</label><input ng-model="item.rateType"></md-input-container>
+			<md-checkbox ng-model="item.allowInterestOnlyPayments">Allow Interest Only Payments</md-checkbox>
+			<md-input-container><label>Payment frequency</label><input ng-model="item.paymentFrequency"></md-input-container>
+			<md-input-container><label>Collateralized Overpayment</label><input ng-model="item.collateralizedOverpayment"></md-input-container>
+			<md-input-container><label>Reamortize Overpayment</label><input ng-model="item.reamortizeOverpayment"></md-input-container>
+			
+		</md-tab>
+		
+		<md-tab label="Conditions">
+			<p>Add conditions for the loan product. Select Mandatory if a
+			condition must be met before the loan application can be submitted for approval.
+			You can add conversion conditions only to Construction-to-Permanent loan
+			products.</p>
+		</md-tab>
+		
+		<md-tab label="Fees">
+			<p>In the Fees tab, you can set fees to be paid by the borrower at origination or during
+			the course of the active loan. Fees marked mandatory cannot be overridden by the
+			loan agent. However, if it is marked Update Amount, then the amount can be
+			modified by the loan agent.</p>
+			<p>Note: The fees associated must be in the same currency as the loan product and from the same operating unit.</p>
+		</md-tab>
+		
+		<md-tab label="Disbursement">
+			<p>The Disbursement tab lets you configure the number of disbursement to be allowed
+			for a particular Loan Product. You can set up multiple disbursement activities and
+			optionally associate conditions and fees to be met before disbursing each
+			installment. If you set fees and conditions to mandatory, only you or a user with
+			administrator rights can modify it. Multiple disbursement is executed based on a
+			disbursement schedule configured while creating a loan. For further details, see:
+			Creating a Disbursement Schedule, page 2-22.</p>
+		</md-tab>
+		
+	</md-tabs>
+</form>
