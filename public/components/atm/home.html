@@ -2,16 +2,15 @@
 
 <div class="gridListBasic">
 	<md-grid-list
-		md-cols-sm="1" md-cols-md="2" md-cols-gt-md="4"
+		md-cols-sm="1" md-cols-md="2" md-cols-gt-md="3"
 		md-row-height-gt-md="1:1" md-row-height="2:2"
 		md-gutter="12px" md-gutter-gt-sm="8px">
 		
-		
 		<md-grid-tile class="green">
-		  <md-grid-tile-footer><h3>Cash withdrawal</h3></md-grid-tile-footer>
+		  <md-grid-tile-footer><md-button ng-href="#/atm/withdrawal">Cash withdrawal</md-button></md-grid-tile-footer>
 		</md-grid-tile>
 		<md-grid-tile class="gray">
-		  <md-grid-tile-footer><h3>Balance inquiry</h3></md-grid-tile-footer>
+		  <md-grid-tile-footer><md-button ng-href="#/atm/balanceInquiry">Balance inquiry</md-button></md-grid-tile-footer>
 		</md-grid-tile>
 		<md-grid-tile class="yellow">
 		  <md-grid-tile-footer><h3>Funds transfer</h3></md-grid-tile-footer>

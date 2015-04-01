@@ -7,6 +7,8 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var spaces = require('./routes/spaces');
+var atmCSP = require('./routes/csp');
+
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/atm', function(err) {
@@ -23,7 +25,6 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// uncomment after placing your favicon in /public
 app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -33,6 +34,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/api/spaces', spaces);
+app.use('/api/atm', atmCSP);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

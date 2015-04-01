@@ -2,7 +2,8 @@
 		'ui.router', 
 		'ngResource', 
 		'ngMaterial',
-		'ngMessages'
+		'ngMessages',
+		'common'
 	])
 	
 	.provider('sidebarMenu', function SidebarMenuProvider() {
@@ -84,4 +85,10 @@
 				templateUrl: '/components/index.html',
 			})
 		;
-	}]);
+	}])
+	.run(['$rootScope', '$state', 'sidebarMenu', function ($rootScope, $state, sidebarMenu) {
+		$rootScope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+			sidebarMenu.activate(toState.name);
+		});
+	}])
+	;

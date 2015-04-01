@@ -1,0 +1,30 @@
+﻿<h1>Withdrawal</h1>
+
+<div ng-show="!askOther">
+	<h3>Select the amount you want to withdraw</h3>
+	<md-grid-list md-cols="2" md-row-height="25px" md-gutter="1em">
+		<md-grid-tile ng-repeat="amount in favoriteAmounts">
+			<md-button style="width:100px" class="md-raised" ng-click="requestWithdrawal(amount)">{{(amount | currency) || 'Other' }}</md-button>
+		</md-grid-tile>
+	</md-grid-list>
+</div>
+
+<div ng-show="askOther">
+	<h3>Type the amount you want to withdraw and press 'Continue'</h3>
+	<form name="withdrawalForm">
+		<md-input-container>
+			<label>Amount</label>
+			<input ng-model="amount" name="amount" required 
+				type="number" step="{{settings.withdrawalAmountStep}}" 
+				min="{{settings.minWithdrawalAmount}}" 
+				max="{{settings.maxWithdrawalAmount}}">
+			<div ng-messages="withdrawalForm.amount.$error">
+				<div ng-message="required">This is required.</div>
+				<div ng-message="min">The amount has to be more than {{settings.minWithdrawalAmount}}.</div>
+				<div ng-message="max">The amount has to be less than {{settings.maxithdrawalAmount}}.</div>
+			</div>
+		</md-input-container>
+	</form>
+	<md-button class="md-raised" ng-disabled="!amount" ng-click="requestWithdrawal(withdrawal)">Continue</md-button>
+	<md-button class="md-raised" ng-click="cancelAskOther()">Back</md-button>
+</div>

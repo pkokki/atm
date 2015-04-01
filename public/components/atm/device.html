@@ -1,0 +1,57 @@
+﻿<div layout="row" layout-margin layout-fill layout-padding>
+	<div flex="66">
+		<div ui-view></div>
+	</div>
+	<div flex="33" layout="column" layout-align="start center">
+		<h1>&nbsp;</h1>
+
+		<h3>Card slot</h3>
+		<div ng-show="atm.hasCardInSlot" layout="column">
+			<md-button class="md-raised" ng-click="eject()" title="Press to eject card">{{atm.cardMagData}}</md-button>
+		</div>
+		<div ng-show="!atm.hasCardInSlot">
+			<md-select 
+				ng-model="selectedTestCard"
+				ng-change="cardSelected(selectedTestCard)"
+				placeholder="______ Test cards ______">
+				<md-optgroup label="Valid cards">
+					<md-option ng-value="card" ng-repeat="card in validCards">{{card}}</md-option>
+				</md-optgroup>
+				<md-optgroup label="Invalid cards">
+					<md-option ng-value="card" ng-repeat="card in invalidCards">{{card}}</md-option>
+				</md-optgroup>
+			</md-select>
+		</div>
+		
+		<h3>Cash dispenser</h3>
+		<md-button class="md-raised" 
+			ng-disabled="!atm.hasCash" 
+			ng-click="takeMoney()" 
+			title="Press to take the money">{{atm.cash | currency : "€ " : 2 }}</md-button>
+		
+		
+		<h3>Keypad</h3>
+		<div layout="column">
+			<div layout="row">
+				<md-button class="md-fab md-primary" ng-click="clickKey(1)">1</md-button>
+				<md-button class="md-fab md-primary" ng-click="clickKey(2)">2</md-button>
+				<md-button class="md-fab md-primary" ng-click="clickKey(3)">3</md-button>
+			</div>
+			<div layout="row">
+				<md-button class="md-fab md-primary" ng-click="clickKey(4)">4</md-button>
+				<md-button class="md-fab md-primary" ng-click="clickKey(5)">5</md-button>
+				<md-button class="md-fab md-primary" ng-click="clickKey(6)">6</md-button>
+			</div>
+			<div layout="row">
+				<md-button class="md-fab md-primary" ng-click="clickKey(7)">7</md-button>
+				<md-button class="md-fab md-primary" ng-click="clickKey(8)">8</md-button>
+				<md-button class="md-fab md-primary" ng-click="clickKey(9)">9</md-button>
+			</div>
+			<div layout="row">
+				<md-button class="md-fab md-primary" ng-click="clickKey('DEL')" title="DEL">del</md-button>
+				<md-button class="md-fab md-primary" ng-click="clickKey('HOME')">HOME</md-button>
+				<md-button class="md-fab md-primary" ng-click="clickKey('ENTER')" title="DONE">done</md-button>
+			</div>
+		</div>
+	</div>
+</div>

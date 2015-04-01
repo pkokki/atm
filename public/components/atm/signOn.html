@@ -1,0 +1,17 @@
+﻿<h1>Sign on</h1>
+
+<form name="signonForm">
+	<md-input-container>
+		<label>Card magnetic data</label>
+		<input ng-disabled="true" ng-model="userinfo.magData"></input>
+	</md-input-container>
+	
+	<md-input-container>
+		<label>PIN</label>
+		<input ng-model="userinfo.pin" autofocus></input>
+	</md-input-container>
+	
+	<md-button class="md-raised" ng-click="requestSignon(userinfo)">Continue</md-button>
+	
+	<h3>{{errMessage}}</h3>
+</form>
