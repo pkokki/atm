@@ -84,9 +84,9 @@
 	*******************************************************************************************************************/
 	
 	.factory('atmDevice', ['$state', function($state) {
-		var errorMessage = null,
-			toState = null,
+		var toState = null,
 			toParams = null;
+			
 		var service = {
 			cardMagData: '4485413657458239=543',
 			hasCardInSlot: true,
@@ -135,12 +135,11 @@
 			},
 			ejectCard: function() {
 				this.cardMagData = null;
-				$state.go('atm.thankyou');
-			},
-			removeCard: function() {
 				this.hasCardInSlot = false;
 				this.isSignedOn = false;
-				$state.go('atm.intro');
+				this.langPreference = 'en-US';
+				this.errorMessage = null;
+				this.goIntro();
 			},
 			dispenseCash: function(amount) {
 				if (amount > 0) {
@@ -155,7 +154,7 @@
 				$state.go('atm.continue');
 			},
 			end: function() {
-				goIntro();
+				this.ejectCard();
 			},
 		};
 		return service;
