@@ -1,0 +1,14 @@
+﻿<h1>Balance Inquiry</h1>
+
+<div ng-show="!balances">
+	<h3>Select the account type</h3>
+	<md-grid-list md-cols="2" md-row-height="25px" md-gutter="1em">
+		<md-grid-tile ng-repeat="accountType in accountTypes">
+			<md-button style="width:200px" class="md-raised" ng-click="requestBalance(accountType)">{{accountType}}</md-button>
+		</md-grid-tile>
+	</md-grid-list>
+</div>
+
+<div ng-show="balances">
+	<h3>Balances</h3>
+</div>
