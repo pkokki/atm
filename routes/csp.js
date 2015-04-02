@@ -35,6 +35,8 @@ router.post('/signon', function(req, res, next) {
 
 /* POST /debitAdds */
 router.post('/debitAdds', function(req, res, next) {
+	processTransaction('DebitAdd', txProcessor.debitAdd, req, res, next);
+	/*
 	atmMessages.DebitAddRq.create(req.body, function (err, rqObj) {
 		if (err) return next(err);
 		txProcessor.authorizeDebit(rqObj, function(err, rqObj, debit) {
@@ -43,9 +45,6 @@ router.post('/debitAdds', function(req, res, next) {
 				RqUID: rqObj._id,
 				MsgRsHdr: {
 					ServerTerminalSeqId: '1234567',
-					/*MsgAuthCode: {
-						MacValue: '4ADE4997AE5076C6B2D7CF7C3C266C6F'
-					}*/
 				},
 			};
 			if (debit) {
@@ -69,7 +68,51 @@ router.post('/debitAdds', function(req, res, next) {
 		});
 		
 		
-	});
+	});*/
 });
+
+/* POST /balanceInquiries */
+router.post('/balanceInquiries', function(req, res, next) {
+	processTransaction('BalInq', txProcessor.balInq, req, res, next);
+});
+
+function processTransaction(txType, processor, req, res, next) {
+	var txRq = mapRequestToTransaction(txType, req);
+	atmMessages.Transaction.create(txRq, function (err, txRq) {
+		if (err) return next(err);
+		processor(txRq, function(err, txRq, txRs) {
+			if (err) return next(err);
+			atmMessages.Transaction.update({ _id: txRq._id }, { $set: txRs}, function (err) {
+				if (err) return next(err);
+				var rsObj = mapTransactionToResponse(txRq, txRs);
+				res.json(rsObj);
+				console.info(JSON.stringify(rsObj));
+			});
+		});
+	});
+}
+
+function mapRequestToTransaction(txType, req) {
+	var reqBody = req.body || {};
+	var txReq = {
+		TranType: txType,
+		RqUID: reqBody.RqUID,
+		RqHeader: reqBody.MsgRqHdr
+	};
+	delete reqBody.RqUID;
+	delete reqBody.MsgRqHdr;
+	txReq.RqPayload = reqBody;
+	return txReq;
+}
+
+function mapTransactionToResponse(txRq, txRs) {
+	var rs = txRs.RsPayload || {};
+	rs.RqUID = txRq.RqUID;
+	if (txRs.RsStatus)
+		rs.Status = txRs.RsStatus;
+	if (txRs.RsHeader)
+		rs.MsgRsHdr = txRs.RsHeader;
+	return rs;
+}
 
 module.exports = router;

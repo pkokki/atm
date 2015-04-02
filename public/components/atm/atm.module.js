@@ -198,6 +198,8 @@
 			version: '0.1',
 		};
 		
+		settings.favoriteWithdrawalAmounts = [ 50, 100, 200, 300, 500, null ];
+		
 		return settings;
 	}])
 	
@@ -274,8 +276,8 @@
 			rq.DebitInfo = {
 				DebitAuthType: 'CashWithdrawal',
 				CompositeCurAmts: [
-					{ Type: 'Debit', Amount: debit.Amount, Currency: debit.currencyCode },
-					{ Type: 'Surcharge', Amount: debit.debitSurcharge, Currency: debit.currencyCode }
+					{ Type: 'Debit', Amount: debit.amount, Currency: debit.currencyCode },
+					{ Type: 'Surcharge', Amount: debit.surcharge, Currency: debit.currencyCode }
 				],
 				CardAcctId: {
 					AcctType: debit.accountType,
@@ -406,18 +408,8 @@
 	}])
 	
 	.controller('AtmWithdrawalController', ['$scope', 'atmDevice', 'atmSettings', 'customerService', function ($scope, atmDevice, atmSettings, customerService) {
-		var debitAddSuccess = function(rs) {
-			if (rs.DebitRec && rs.DebitRec.DebitStatus && rs.DebitRec.DebitStatus.DebitStatusCode == 'Authorized') {
-				atmDevice.dispenseCash(amount);
-			}
-			else {
-				atmDevice.showError(rs);
-			}
-		};
-		
 		
 		$scope.settings = atmSettings;
-		$scope.favoriteAmounts = [ 50, 100, 200, null ];
 		$scope.askOther = false;
 		
 		$scope.requestWithdrawal = function(amount) {
@@ -429,7 +421,19 @@
 					surcharge: atmSettings.debitSurcharge,
 					currencyCode: atmSettings.currencyCode,
 				};
-				customerService.debitAdd(debit).then(debitAddSuccess, function(err) { atmDevice.showError(err); });
+				customerService.debitAdd(debit).then(
+					function(rs) {
+						console.log(rs);
+						if (rs.DebitRecord && rs.DebitRecord.DebitStatus && rs.DebitRecord.DebitStatus.DebitStatusCode == 'Authorized') {
+							atmDevice.dispenseCash(amount);
+						}
+						else {
+							atmDevice.showError(rs);
+						}
+					}, 
+					function(err) { 
+						atmDevice.showError(err); 
+					});
 			}
 			else {
 				$scope.askOther = true;
@@ -447,6 +451,7 @@
 				atmDevice.showError(rs);
 			}
 			else {
+				console.log(rs);
 				$scope.balances = rs.AcctBal;
 			}
 		};

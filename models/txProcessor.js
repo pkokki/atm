@@ -68,18 +68,51 @@ var Card = mongoose.model('Card', CardSchema),
 	Account = mongoose.model('Account', AccountSchema)
 	;
 
+
+function createResponse() {
+	var rs = {
+		RsHeader: {
+			ServerTerminalSeqId: 'ServTerm0001',
+			/*MsgAuthCode: {
+				MacValue: '',
+			}*/
+		}
+	};
+	return rs;
+}
+	
 module.exports = {
-	authorizeDebit : function(req, fn) {
-		// fn(err, req, debit)
-		var debit = {
-			Id: '12341234',
-			Debit: 'Authorized',
-			EffectiveDate: new Date()
+	debitAdd: function(txRq, fn) {
+		var payload = {
+			DebitRecord: {
+				DebitId: '12341234',
+				DebitInfo: txRq.RqPayload.DebitInfo,
+				DebitStatus: {
+					DebitStatusCode: 'Authorized',
+					EffDate: new Date()
+				}
+			}
+		};
+		var status = {			
+			StatusCode: 2940,
+			Severity: 'Error',
+			StatusDesc: 'Insufficient funds',
 		};
 		
+		var txRs = createResponse();
+		//txRs.RsStatus = status;
+		txRs.RsPayload = payload;
+		
 		if ('function' == typeof fn)
-			fn(null, req, debit);
-	}
+			fn(null, txRq, txRs);
+	},
+	
+	balInq: function(txRq, fn) {
+		var txRs = createResponse();
+		
+		if ('function' == typeof fn)
+			fn(null, txRq, txRs);
+	},
 };
 
 

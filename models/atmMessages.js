@@ -88,8 +88,29 @@ var SignonRsSchema = new mongoose.Schema({
 	Status: status,
 });
 
+var messageResponseHeader = {
+	MsgAuthCode: messageAuthCode,
+	ServerTerminalSeqId: { type: String }
+};
+
+var TransactionSchema = new mongoose.Schema({
+	TranType: { type: String, required: true, enum: { 
+		values:[ 'DebitAdd', 'BalInq' ], 
+		message: 'enum validation failed for path "{PATH}" with value "{VALUE}"' } 
+	},
+	Timestamp: { type: Date, required: true, default: Date.now },
+	RqUID: { type: String, unique: true, required: true },
+	RqHeader: { type: messageRequestHeader, required: true },
+	RqPayload: { type: mongoose.Schema.Types.Mixed },
+	RsStatus: { type: status },
+	RsHeader: { type: messageResponseHeader },
+	RsPayload: { type: mongoose.Schema.Types.Mixed },
+});
+
 module.exports = {
 	SignonRq: mongoose.model('SignonRq', SignonRqSchema),
 	SignonRs: mongoose.model('SignonRs', SignonRsSchema),
-	DebitAddRq: mongoose.model('DebitAddRq', DebitAddRqSchema)
+	DebitAddRq: mongoose.model('DebitAddRq', DebitAddRqSchema),
+	
+	Transaction: mongoose.model('Transaction', TransactionSchema),
 };
