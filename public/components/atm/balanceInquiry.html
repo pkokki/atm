@@ -11,4 +11,20 @@
 
 <div ng-show="balances">
 	<h3>Balances</h3>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Type</th>
+				<th>Balance</th>
+				<th>Currency</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="balance in balances">
+				<td>{{balance.Type}}</td>
+				<td>{{balance.Amount  | number : 2 }}</td>
+				<td>{{balance.Currency}}</td>
+			</tr>
+		</tbody>
+	</table>
 </div>

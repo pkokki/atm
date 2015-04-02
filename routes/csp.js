@@ -36,39 +36,6 @@ router.post('/signon', function(req, res, next) {
 /* POST /debitAdds */
 router.post('/debitAdds', function(req, res, next) {
 	processTransaction('DebitAdd', txProcessor.debitAdd, req, res, next);
-	/*
-	atmMessages.DebitAddRq.create(req.body, function (err, rqObj) {
-		if (err) return next(err);
-		txProcessor.authorizeDebit(rqObj, function(err, rqObj, debit) {
-			if (err) return next(err);
-			var rsObj = {
-				RqUID: rqObj._id,
-				MsgRsHdr: {
-					ServerTerminalSeqId: '1234567',
-				},
-			};
-			if (debit) {
-				rsObj.DebitRec = {
-					DebitId: debit.Id,
-					DebitInfo: rqObj.DebitInfo,
-					DebitStatus: {
-						DebitStatusCode: 'Authorized',
-						EffDate: new Date()
-					}
-				};
-			}
-			else {
-				rsObj.Status = {
-					StatusCode: 2940,
-					Severity: 'Error',
-					StatusDesc: 'Insufficient funds',
-				};
-			}
-			res.json(rsObj);
-		});
-		
-		
-	});*/
 });
 
 /* POST /balanceInquiries */
@@ -76,6 +43,8 @@ router.post('/balanceInquiries', function(req, res, next) {
 	processTransaction('BalInq', txProcessor.balInq, req, res, next);
 });
 
+
+/*************************************** HELPERS ***************************************/
 function processTransaction(txType, processor, req, res, next) {
 	var txRq = mapRequestToTransaction(txType, req);
 	atmMessages.Transaction.create(txRq, function (err, txRq) {

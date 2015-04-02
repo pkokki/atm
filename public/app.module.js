@@ -60,7 +60,7 @@
 		};
 		
 		$scope.isSidebarLocked = function() {
-			return $mdMedia('gt-md');
+			return false;// $mdMedia('gt-md');
 		}
 		
 		sidebarMenu.onchange(function(items) { $scope.sidebarItems = items; });

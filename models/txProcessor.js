@@ -80,7 +80,44 @@ function createResponse() {
 	};
 	return rs;
 }
+
+/*
+	Request: {
+		RqUID: 'guid',
+		RqHeader: {
+			NetworkTrnInfo: {
+				NetworkOwner: '',
+				TerminalId: '',
+				Location: {
+					Address: '',
+					City: '',
+					StateProv: '',
+					PostalCode: '',
+					Country: '',
+				}
+			},
+			MsgAuthCode: {
+				MacValue: 'XXXXXXXXX'
+			},
+		},
+		RqPayload: {}
+	}
 	
+	Response: {
+		RsHeader: {
+			ServerTerminalSeqId: 'XXXXXXX',
+			MsgAuthCode: {
+				MacValue: 'XXXXXXXXX'
+			},
+		},
+		RsStatus: {
+			StatusCode: 0000,
+			Severity: 'Error',
+			StatusDesc: 'XXXXXXXXX',
+		},
+		RsPayload: {},
+	}
+*/
 module.exports = {
 	debitAdd: function(txRq, fn) {
 		var payload = {
@@ -109,6 +146,12 @@ module.exports = {
 	
 	balInq: function(txRq, fn) {
 		var txRs = createResponse();
+		txRs.RsPayload = {
+			AccountBalances: [
+				{ Type: 'Avail', Amount: 300, Currency: 'EUR' },
+				{ Type: 'Ledger', Amount: 708.50, Currency: 'EUR' }
+			]
+		};
 		
 		if ('function' == typeof fn)
 			fn(null, txRq, txRs);

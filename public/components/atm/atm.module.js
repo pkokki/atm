@@ -452,7 +452,7 @@
 			}
 			else {
 				console.log(rs);
-				$scope.balances = rs.AcctBal;
+				$scope.balances = rs.AccountBalances;
 			}
 		};
 		
