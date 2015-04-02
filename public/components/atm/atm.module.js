@@ -87,6 +87,65 @@
 	/******************************************************************************************************************
 	SERVICES/FACTORIES ************************************************************************************************
 	*******************************************************************************************************************/
+	.factory('atmTerminal', ['$state', function($state) {
+		var instantiateTerminal = function() {
+			// all properties should be restored to their previous value except the following:
+			this.TerminalObjectStatusCode = 'Closed';
+			this.RequestedOperationMode = 'TerminalObjectStatusCode value at shutdown';
+		};
+		var instantiateSecurity = function() {
+			// The security objects contain information used to perform cryptographic functions on data.
+			// As part of the manufacture and configuration of an ATM, several 
+			// security objects will be created (i.e. key encrypting key, PIN encrypting key).
+			this.encryptPIN = function(pin) {
+				return pin;
+			};
+		};
+		var instantiateDevice = function() {
+			// Each of the hardware devices within the ATM has a corresponding
+			// logical or software component within the ATM application. These logical objects (e.g. an object to
+			// represent the card reader) are dynamically created based on the hardware available to the ATM.
+			
+		};
+		var instantiateServiceProviders = function() {
+			this.transactionProvider = null;
+			this.maintenanceProvider = null;
+			this.inventoryProvider = null;
+			
+			// Sent to each provider: SignonRq + TerminalSPObjInqRq + SvcProfInqRq
+			// The response to these documents is used to verify or configure the features that 
+			// will be made available to the ATM applications and the customers that use it.
+			// If a service provider does not respond to this document its status should be set to ServiceUnavailable.
+			
+		};
+		var performDeviceSelfTests = function() {
+			// Once the basic application objects have been created and communication with service providers
+			// established, the ATM will likely perform its internal self test. 
+			// If problems are detected a document is sent to the status maintenance server. This document will
+			// contain a terminal signon (i.e. SignonRq) and one or more device advise (i.e. DevAdviseRq)
+			// messages. See the Device Status section for details on status and fault reporting.
+		};
+		var activateTerminal = function() {
+			// Once the hardware and software is prepared for ATM operation, the ATM will change its terminal
+			// object status code to the requested operation mode (normally “Open”). The ATM will also notify
+			// the status/maintenance service provider of that change and activate its user interface.
+			this.TerminalObjectStatusCode = 'Open';
+			// SignonRq + TerminalObjAdviseRq >>> maintenanceProvider
+		};
+		
+		return {
+			powerUp: function() {
+				// This sequence assumes that communications have been established and keys are synchronized.
+				instantiateTerminal();
+				instantiateSecurity();
+				instantiateDevice();
+				instantiateServiceProviders();
+				// Server requests client profile information: SignonRq + TerminalObjInq + SvcProfInqRq
+				performDeviceSelfTests();
+				activateTerminal();
+			},
+		};
+	}])
 	
 	.factory('atmDevice', ['$state', function($state) {
 		var toState = null,
