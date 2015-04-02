@@ -48,6 +48,11 @@
 				templateUrl: '/components/atm/continue.html',
 				controller: 'AtmContinueController'
 			})
+			.state('atm.balanceInquiry', {
+				url: '/balanceInquiry',
+				templateUrl: '/components/atm/balanceInquiry.html',
+				controller: 'AtmBalanceInquiryController'
+			})
 		;
 		
 		//var atmHomeItems = [
@@ -124,7 +129,16 @@
 				this.isSignedOn = true;
 				this.resumeRoute();
 			},
-			showError: function(msg) {
+			showError: function(data) {
+				if ('string' == typeof data) {
+					msg = data;
+				}
+				else if (data.Status) {
+					msg = rs.Status.StatusDesc + ' [' + rs.Status.StatusCode + ']';
+				}
+				else {
+					msg = 'Unknown error.';
+				}
 				this.lastErrorMessage = msg;
 				$state.go('atm.inError');
 			},
@@ -151,10 +165,13 @@
 			retrieveCash: function() {
 				this.cash = 0;
 				this.hasCash = false;
-				$state.go('atm.continue');
+				this.finish();
 			},
 			end: function() {
 				this.ejectCard();
+			},
+			finish: function() {
+				$state.go('atm.continue');
 			},
 		};
 		return service;
@@ -269,10 +286,41 @@
 			};
 			return messageBus.post('api/atm/debitAdds', rq);
 		};
+		// Option1: If detailed account information is not known by the client at the time of sending the
+		// 			request, the cardAccount JSON should be used to specify an account type associated with 
+		// 			the card. Note that when multiple accounts of the type specified (e.g. DDA) are 
+		//			associated with the card, the response from the IFX server has status code 3560 
+		//			(Card Account ID Matches Multiple Accounts).
+		// Option2: If the account details have already been downloaded previously (from a prior 
+		//			PartyAcctRelInqRq or SvcAcctInqRq), the account should be fully specified with a 
+		//			depAccount JSON.
+		var inquiryBalance = function(cardAccount, depAccount) {
+			var rq = requestFactory.create();
+			if (cardAccount) {
+				rq.CardAcctId = {
+					AcctType: cardAccount.type,
+					CardMagData: {
+						MagData2: cardAccount.magData
+					}
+				};
+			}
+			else if (depAccount) {
+				rq.DepAcctId = {
+					AcctId: depAccount.id,
+					AcctType: depAccount.type, 
+					BankInfo: { /* BankInfo details are country specific */
+						BankIdType: depAccount.bankIdType,
+						BankId: depAccount.bankId,
+					},
+				}
+			}
+			return messageBus.post('api/atm/balanceInquiries', rq);
+		};
 		
 		
 		return {
-			debitAdd: debitAdd
+			debitAdd: debitAdd,
+			inquiryBalance: inquiryBalance,
 		};
 	}])
 	
@@ -358,6 +406,16 @@
 	}])
 	
 	.controller('AtmWithdrawalController', ['$scope', 'atmDevice', 'atmSettings', 'customerService', function ($scope, atmDevice, atmSettings, customerService) {
+		var debitAddSuccess = function(rs) {
+			if (rs.DebitRec && rs.DebitRec.DebitStatus && rs.DebitRec.DebitStatus.DebitStatusCode == 'Authorized') {
+				atmDevice.dispenseCash(amount);
+			}
+			else {
+				atmDevice.showError(rs);
+			}
+		};
+		
+		
 		$scope.settings = atmSettings;
 		$scope.favoriteAmounts = [ 50, 100, 200, null ];
 		$scope.askOther = false;
@@ -371,20 +429,7 @@
 					surcharge: atmSettings.debitSurcharge,
 					currencyCode: atmSettings.currencyCode,
 				};
-				customerService.debitAdd(debit).then(
-					function(rs) { 
-						if (rs.DebitRec && rs.DebitRec.DebitStatus && rs.DebitRec.DebitStatus.DebitStatusCode == 'Authorized') {
-							atmDevice.dispenseCash(amount);
-						}
-						else {
-							var errorMessage = rs.Status ? (rs.Status.StatusDesc + ' [' + rs.Status.StatusCode + ']') : 'Unknown error.';
-							atmDevice.showError(errorMessage);
-						}
-					},
-					function(errorMessage) { 
-						atmDevice.showError(errorMessage);
-					}
-				);
+				customerService.debitAdd(debit).then(debitAddSuccess, function(err) { atmDevice.showError(err); });
 			}
 			else {
 				$scope.askOther = true;
@@ -395,3 +440,28 @@
 		};
 	}])
 	
+	.controller('AtmBalanceInquiryController', ['$scope', 'atmDevice', 'atmSettings', 'customerService', function ($scope, atmDevice, atmSettings, customerService) {
+		var inquiryBalanceSuccess = function(rs) {
+			if (rs.Status) {
+				// Get the message
+				atmDevice.showError(rs);
+			}
+			else {
+				$scope.balances = rs.AcctBal;
+			}
+		};
+		
+		$scope.balances = null;
+		$scope.accountTypes = [ 'DDA', 'SDA' ];
+		
+		$scope.requestBalance = function(type) {
+			var accountData = {
+				magData: atmDevice.cardMagData,
+				type: type,
+			};
+			customerService.inquiryBalance(accountData).then(inquiryBalanceSuccess, function(err) { atmDevice.showError(err); });
+		};
+		$scope.finish = function() {
+			atmDevice.finish();
+		};
+	}])
