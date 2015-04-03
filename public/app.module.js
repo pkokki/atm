@@ -3,7 +3,8 @@
 		'ngResource', 
 		'ngMaterial',
 		'ngMessages',
-		'common'
+		'common',
+		'dcms'
 	])
 	
 	.provider('sidebarMenu', function SidebarMenuProvider() {
