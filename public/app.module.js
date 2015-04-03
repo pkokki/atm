@@ -63,6 +63,8 @@
 			return false;// $mdMedia('gt-md');
 		}
 		
+		$scope.toolbarTitle = 'ATM';
+		
 		sidebarMenu.onchange(function(items) { $scope.sidebarItems = items; });
 		
 		$scope.showBottomSheet = function($event) {
