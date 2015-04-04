@@ -1,0 +1,62 @@
+﻿<h2>profile settings</h2>
+
+<p>When a profile setting is set at more than one profile, 
+the value entered at the <em>global</em> profile is assigned the lowest priority 
+and is superseded by any value entered at a <em>solution</em> profile. Any value 
+entered at a <em>claim</em> profile will supersede <em>solution</em> profile settings. 
+The value assigned at a <em>user</em> profile is given the highest
+priority, overriding any values entered at other profile.</p>
+
+<md-tabs>
+	<md-tab label="global profile"></md-tab>
+	<md-tab label="solution profiles">
+		<md-select placeholder="Select solution" ng-model="selectedSolution">
+		</md-select>
+	</md-tab>
+	<md-tab label="claims profiles">
+		<md-select placeholder="Select claim" ng-model="selectedClaim">
+		</md-select>
+	</md-tab>
+	<md-tab label="user profiles">
+		<md-select placeholder="Select user" ng-model="selectedUser">
+		</md-select>
+	</md-tab>
+</md-tabs>
+
+<h3>General settings</h3>
+<md-switch aria-label="xxx">view potential owners</md-switch>
+<md-switch aria-label="xxx">view stakeholders</md-switch>
+<md-switch aria-label="xxx">view administrators</md-switch>
+<md-radio-group ng-model="xxx1" layout="row" layout-align="start center">
+	<div>inbox style</div>
+	<md-radio-button value="xxx2">grid</md-radio-button>
+	<md-radio-button value="xxx3">selector</md-radio-button>
+</md-radio-group>
+<md-radio-group ng-model="xxx2" layout="row" layout-align="start center">
+	<div>update of counters</div>
+	<md-radio-button value="xxx1">enter only</md-radio-button>
+	<md-radio-button value="xxx2">manual</md-radio-button>
+	<md-radio-button value="xxx3">automatic</md-radio-button>
+</md-radio-group>
+<md-switch aria-label="xxx">show quick search</md-switch>
+<md-switch aria-label="xxx">show event viewer</md-switch>
+
+<h3>Collections settings</h3>
+<md-switch aria-label="xxx">Account View Delinquencies <input placeholder="Order"></md-switch>
+<md-switch aria-label="xxx">Account View Promises</md-switch>
+<md-switch aria-label="xxx">Account View Strategies</md-switch>
+<md-switch aria-label="xxx">Customer View Delinquencies</md-switch>
+<md-switch aria-label="xxx">Customer View Promises</md-switch>
+<md-switch aria-label="xxx">Customer View Strategies</md-switch>
+<md-switch aria-label="xxx">Delinquencies</md-switch>
+<md-switch aria-label="xxx">Promises</md-switch>
+<md-switch aria-label="xxx">Strategies</md-switch>
+
+<md-radio-group ng-model="xxx3" layout="row" layout-align="start center">
+	<div>trace log</div>
+	<md-radio-button value="xxx1">none</md-radio-button>
+	<md-radio-button value="xxx2">info</md-radio-button>
+	<md-radio-button value="xxx3">warn</md-radio-button>
+	<md-radio-button value="xxx3">error</md-radio-button>
+	<md-radio-button value="xxx3">all</md-radio-button>
+</md-radio-group>
