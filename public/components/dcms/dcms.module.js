@@ -97,6 +97,12 @@
 					active: true, 
 				}
 			],
+			cachedTokens: {
+				default: {
+					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyODUxMTU2OCwibmJmIjoxNDI4NTA3OTY4fQ.xaDBYU6SUma41oAygv6a2ED4X-i52v90roXpILO9AWI",
+					"refresh_token": "vDEpdQpcQUdcRqNrbfaibZdS-q0IAblrnFJCSV6lK6I"
+				},
+			},
 			services: {
 				omSrv: {
 					uri: 'http://atlas-orgmodel.azurewebsites.net/api/',
@@ -124,6 +130,9 @@
 					uri: 'http://atlas-business.azurewebsites.net/api/',
 				},
 			},
+			locations: {
+				rootUnit: '#LOCATIONS',
+			},
 		};
 		return setup;
 	}])
@@ -138,7 +147,18 @@
 			}
 			return null;
 		};
-		var cache = {};
+		var http401 = {
+			//response: function (result) {
+			//	return result.data;
+			//},
+			responseError: function (rejection) {
+				console.warn('Failed with ' + rejection.status + ' status');
+				if (rejection.status == 401) {
+				}
+				return $q.reject(rejection);
+			}
+		};
+		var cache = setup.cachedTokens;
 		var getCachedTokens = function(name) {
 			return cache[name];
 		};
@@ -149,12 +169,24 @@
 		return {
 			getServiceInfo: function(serviceConfig) {
 				var deferred = $q.defer();
-				var info = { baseUri: serviceConfig.uri, headers: {} };
+				var template = { headers: {} };
+				var info = { 
+					baseUri: serviceConfig.uri, 
+					action: function(target) {
+						var obj = angular.copy(target);
+						
+						for (var prop in template) {
+							obj[prop] = template[prop];
+						}
+						return obj;
+					}
+				};
 				if (serviceConfig.securityType == 'oauth2') { 
 					var providerName = serviceConfig.oauth2.providerName;
 					var tokens = getCachedTokens(providerName);
 					if (tokens) {
-						info.headers.Authorization = "Bearer " + tokens.access_token;
+						template.headers.Authorization = "Bearer " + tokens.access_token;
+						template.interceptor = http401;
 						deferred.resolve(info);
 					}
 					else {
@@ -165,7 +197,8 @@
 							.createToken(baseUri, { username: 'JohnDoe', password: 'JohnDoe'})
 							.then(function(tokens) {
 								setCachedTokens(providerName, tokens)
-								info.headers.Authorization = "Bearer " + tokens.access_token;
+								template.headers.Authorization = "Bearer " + tokens.access_token;
+								template.interceptor = http401;
 								deferred.resolve(info);
 							}, function(err) {
 								deferred.reject(err);
@@ -179,6 +212,7 @@
 			}
 		}
 	}])
+	
 	
 	/******************************************************************************************************************
 	ATLAS SERVICES CLIENTS ********************************************************************************************
@@ -230,7 +264,32 @@
 				var deferred = $q.defer();
 				serviceRegistry.getServiceInfo(serviceConfig).then(function(info) {
 					var resource = $resource(info.baseUri + 'users', null, {
-						'query': { method:'GET', headers: info.headers },
+						'query': info.action({ method:'GET' }),
+					});
+					deferred.resolve(resource);
+				}, function(err) {
+					deferred.reject(err);
+				});
+				return deferred.promise;
+			},
+			getUnitResource: function() {
+				var deferred = $q.defer();
+				serviceRegistry.getServiceInfo(serviceConfig).then(function(info) {
+					var resource = $resource(info.baseUri + 'units', null, {
+						'query': info.action({ method:'GET', isArray:true }),
+						'save': info.action({ method:'POST' }),
+					});
+					deferred.resolve(resource);
+				}, function(err) {
+					deferred.reject(err);
+				});
+				return deferred.promise;
+			},
+			getUnitChildrenResource: function() {
+				var deferred = $q.defer();
+				serviceRegistry.getServiceInfo(serviceConfig).then(function(info) {
+					var resource = $resource(info.baseUri + 'units/:id/children', { id: '@id' }, {
+						'query': info.action({ method:'GET', isArray:true }),
 					});
 					deferred.resolve(resource);
 				}, function(err) {
@@ -239,7 +298,6 @@
 				return deferred.promise;
 			},
 			groups: null,
-			units: null,
 			roles: null,
 			permissions: null,
 		};
@@ -303,9 +361,33 @@
 		};
 	}])
 	
-	.controller('DcmsSetupOmOrganizationController', ['$scope', '$mdToast', 'setup', 'orgModelService', function ($scope, $mdToast, setup, orgModelService) {
+	.controller('DcmsSetupOmOrganizationController', ['$scope', '$filter', '$mdToast', 'setup', 'orgModelService', function ($scope, $filter, $mdToast, setup, orgModelService) {
+		var errHandler = function(errMsg) { $mdToast.show($mdToast.simple().content(errMsg)); };
+		var getLocationRootUnit = function(callback) {
+			orgModelService.getUnitResource().then(function(unitRs) {
+				unitRs.query(function(units) {
+					var units = $filter('filter')(units, { Name: setup.locations.rootUnit }, true);
+					var locationsRoot = null;
+					if (units.length == 0) {
+						$mdToast.show($mdToast.simple().content('Creating root unit for locations...'));
+						unitRs.$save(new unitRs({ Name: setup.locations.rootUnit })).then(function(rs) {
+							$mdToast.show($mdToast.simple().content('Root unit for locations created succesfully.'));
+							callback(rs);
+						}, errHandler);
+					}
+					else {
+						locationsRoot = units[0];
+						$mdToast.show($mdToast.simple().content('Root unit for locations found: ' + locationsRoot));
+						callback(locationsRoot);
+					}
+					// Get all locations
+				}, errHandler);
+			});
+		}
+		
 		$scope.service = setup.services.omSrv;
 		$scope.oauthProviders = setup.oauthProviders;
+		$scope.locations = [];
 		
 		$scope.testConnection = function() {
 			orgModelService.getUserResource().then(function(userRs) {
@@ -313,11 +395,26 @@
 					window.alert('Should not happen: userRs = null');
 				userRs.query(function(result) {
 					$mdToast.show($mdToast.simple().content('Connection is OK'));
-				}, function(result) {
-					$mdToast.show($mdToast.simple().content('Error connecting to the service.'));
-				});
+				}, errHandler);
 			});
 			
+		};
+		
+		var initLocations = true;
+		$scope.onSelectLocations = function() {
+			if (initLocations) {
+				initLocations = false;
+				getLocationRootUnit(function(rootUnit) {
+					orgModelService.getUnitChildrenResource().then(function(ucRs) {
+						ucRs.query({id: rootUnit.Id}, function(locations) {
+							$scope.locations = locations;
+						});
+					});
+				});
+			};
+		};
+		
+		$scope.addLocation() {
 		};
 
 	}])

@@ -32,8 +32,21 @@
 
 		</md-tab>
 		
-		<md-tab label="Locations">
+		<md-tab label="Locations" md-on-select="onSelectLocations()">
 			<div layout="column" layout-padding layout-margin>
+				<table class="table">
+					<thead>
+						<tr><th>Name</th><th>Actions</th></tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="location in locations">
+							<td>{{location.Name}}</td><td></td>
+						</tr>
+					</tbody>
+				</table>
+				<p>
+					<md-button ng-click="addLocation()">Add location</md-button>
+				</p>
 			</div>
 		</md-tab>
 		
