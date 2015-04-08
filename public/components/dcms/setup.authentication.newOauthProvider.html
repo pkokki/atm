@@ -1,0 +1,13 @@
+﻿<h3>New OAuth 2.0 token provider</h3>
+
+<md-input-container><label>Name</label><input ng-model="newOauthProvider.name"></md-input-container>	
+<md-input-container><label>Description</label><input ng-model="newOauthProvider.description"></md-input-container>	
+<md-input-container><label>Service URI</label><input ng-model="newOauthProvider.uri"></md-input-container>
+<md-input-container><label>Username</label><input ng-model="newOauthProvider.credentials.username"></md-input-container>
+<md-input-container><label>Password</label><input type="password" ng-model="newOauthProvider.credentials.password"></md-input-container>
+<md-checkbox aria-label="active" ng-model="newOauthProvider.active">Active</md-checkbox>
+
+<div layout="row">
+	<md-button class="md-primary" ng-click="saveNewOauthProvider(newOauthProvider)">Add new</md-button>
+	<md-button ng-click="gotoMain()">Return</md-button>
+</div>

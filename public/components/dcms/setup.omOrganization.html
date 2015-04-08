@@ -3,18 +3,40 @@
 <p>Record the physical location where your users work and all the different departments and sections which make up your enterprise.<p>
 
 <div>
-<md-tabs class="md-whiteframe-z1">
-	<md-tab label="Service">
-		<md-input-container><label>Backend service URL</label><input ng-model="setup.omOrganization.backendServiceUrl"></md-input-container>
-		<h3>Features</h3>
-		<md-radio-group ng-model="setup.omOrganization.security" layout="row" layout-align="start center">
-			<div>Security</div>
-			<md-radio-button value="none">None</md-radio-button>
-			<md-radio-button value="keys">API keys</md-radio-button>
-			<md-radio-button value="oauth2">OAuth v2.0 tokens</md-radio-button>
-		</md-radio-group>
-	</md-tab>
-	<md-tab label="Locations"></md-tab>
-	<md-tab label="Departments"></md-tab>
-</md-tabs>
+	<md-tabs class="md-whiteframe-z1">
+		<md-tab label="Service">
+			<div layout="column" layout-padding layout-margin>
+				<md-input-container><label>Backend service URL</label><input ng-model="service.uri"></md-input-container>
+				<md-radio-group ng-model="service.securityType" layout="row" layout-align="start center">
+					<div>Security</div>
+					<md-radio-button value="none">None</md-radio-button>
+					<md-radio-button value="keys">API keys</md-radio-button>
+					<md-radio-button value="oauth2">OAuth v2.0 tokens</md-radio-button>
+				</md-radio-group>
+				
+				<div ng-show="service.securityType == 'oauth2'">
+					<md-input-container class="md-input-has-value">
+						<label>OAuth2 provider</label>
+						<md-select ng-model="service.oauth2.providerName" placeholder="Select...">
+							<md-option ng-value="oauthProvider.name" ng-repeat="oauthProvider in oauthProviders | filter: {active: true }">
+								{{oauthProvider.name}}
+							</md-option>
+						</md-select>
+					</md-input-container>
+				</div>
+				
+				<p>
+					<md-button ng-click="testConnection()">Test connection</md-button>
+				</p>
+			</div>
+
+		</md-tab>
+		
+		<md-tab label="Locations">
+			<div layout="column" layout-padding layout-margin>
+			</div>
+		</md-tab>
+		
+		<md-tab label="Departments"></md-tab>
+	</md-tabs>
 </div>

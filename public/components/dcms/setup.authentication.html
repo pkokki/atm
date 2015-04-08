@@ -1,0 +1,26 @@
+﻿<h2>Setup authentication</h2>
+
+<div ui-view>
+
+	<h3>OAuth 2.0 token providers</h3>
+
+	<md-list>
+		<md-list-item ng-repeat="oauthProvider in oauthProviders">
+			<div layout="row" layout-align="start center">
+				<md-checkbox aria-label="active" ng-model="oauthProvider.active"></md-checkbox>
+				<div class="md-list-item-text">
+					<h3>{{oauthProvider.name}}</h3>
+					<h4>{{oauthProvider.uri}}</h4>
+					<p ng-show="oauthProvider.credentials">Credentials: {{oauthProvider.credentials.username}}, {{oauthProvider.credentials.password}}</p>
+					<p>{{oauthProvider.description}}</p>
+				</div>
+				<md-button ng-click="testOauthProvider(oauthProvider)">Test connection</md-button>
+			</div>
+		</md-list-item>		
+	</md-list>
+	
+	<p>
+		<md-button ng-href="#/dcms/setup/authentication/newOauthProvider">Add new</md-button>
+	</p>
+
+</div>

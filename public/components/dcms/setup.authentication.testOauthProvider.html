@@ -1,0 +1,29 @@
+﻿<h3>Test OAuth 2.0 token provider</h3>
+
+<div layout="row" layout-sm="column">
+	<md-input-container flex><label>Provider name</label><input ng-model="provider.name" readonly></md-input-container>	
+	<md-input-container flex><label>Provider URI</label><input ng-model="provider.uri" readonly></md-input-container>	
+</div>
+<div layout="row" layout-sm="column">
+	<div flex>
+		<md-input-container><label>Username</label><input ng-model="credentials.username"></md-input-container>	
+		<md-input-container><label>Password</label><input type="password" ng-model="credentials.password"></md-input-container>	
+
+		<div layout="row">
+			<md-button class="md-primary" 
+				ng-disabled="!(provider && credentials && credentials.username && credentials.password)"
+				ng-click="getToken(provider, credentials)">Get Token</md-button>
+			<md-button ng-click="gotoMain()">Return</md-button>
+		</div>
+	</div>
+	<div flex>
+		<md-input-container><label>Status</label><input ng-model="result.status" readonly></md-input-container>
+		<md-input-container><label>Status text</label><input ng-model="result.statusText" readonly></md-input-container>
+		
+		<md-input-container><label>Access token</label><textarea ng-model="result.access_token" readonly></textarea></md-input-container>
+		<md-input-container><label>Refresh token</label><input ng-model="result.refresh_token" readonly></md-input-container>
+		<md-button class="md-primary" 
+			ng-disabled="!(provider && result.refresh_token)"
+			ng-click="deleteToken(provider, result.refresh_token)">Delete Token</md-button>
+	</div>
+</div>
