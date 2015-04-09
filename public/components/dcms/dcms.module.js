@@ -47,7 +47,11 @@
 				templateUrl: '/components/dcms/setup.omOrganization.html', 
 				controller: 'DcmsSetupOmOrganizationController',
 			})
-			.state('dcms.setup.omUsers', { url: '/omUsers', templateUrl: '/components/dcms/setup.omUsers.html', })
+			.state('dcms.setup.omUsers', { 
+				url: '/omUsers', 
+				templateUrl: '/components/dcms/setup.omUsers.html', 
+				controller: 'DcmsSetupOmUsersController',
+			})
 			.state('dcms.setup.omGroups', { url: '/omGroups', templateUrl: '/components/dcms/setup.omGroups.html', })
 			.state('dcms.setup.omMembership', { url: '/omMembership', templateUrl: '/components/dcms/setup.omMembership.html', })
 			.state('dcms.setup.omCollectors', { url: '/omCollectors', templateUrl: '/components/dcms/setup.omCollectors.html', })
@@ -98,9 +102,9 @@
 				}
 			],
 			cachedTokens: {
-				default: {
-					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyODUxMTU2OCwibmJmIjoxNDI4NTA3OTY4fQ.xaDBYU6SUma41oAygv6a2ED4X-i52v90roXpILO9AWI",
-					"refresh_token": "vDEpdQpcQUdcRqNrbfaibZdS-q0IAblrnFJCSV6lK6I"
+				default1: {
+					access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyODU4MTY5MSwibmJmIjoxNDI4NTc4MDkxfQ.ww6rMraRrp-VU2zycK72j9GppROJnZIWJWj5Wubs5Us",
+refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 				},
 			},
 			services: {
@@ -131,7 +135,10 @@
 				},
 			},
 			locations: {
-				rootUnit: '#LOCATIONS',
+				rootUnitName: '#LOCATIONS',
+			},
+			groups: {
+				dcmsUsers: '#DCMS_USERS',
 			},
 		};
 		return setup;
@@ -213,6 +220,14 @@
 		}
 	}])
 	
+	.factory('errHandler', ['$mdToast', function($mdToast) {
+		var errHandler = function(errMsg) { 
+			$mdToast.show($mdToast.simple().content(errMsg)); 
+			console.error(errMsg);
+		};
+		
+		return errHandler;
+	}])	
 	
 	/******************************************************************************************************************
 	ATLAS SERVICES CLIENTS ********************************************************************************************
@@ -254,53 +269,160 @@
 		}
 	}])
 	
-	.factory('orgModelService', ['$q', '$resource', 'setup', 'serviceRegistry', function($q, $resource, setup, serviceRegistry) {
-		var serviceConfig = angular.copy(setup.services.omSrv);
-		return {
-			getConfig: function() {
-				return serviceConfig;
-			},
-			getUserResource: function() {
-				var deferred = $q.defer();
-				serviceRegistry.getServiceInfo(serviceConfig).then(function(info) {
-					var resource = $resource(info.baseUri + 'users', null, {
-						'query': info.action({ method:'GET' }),
-					});
-					deferred.resolve(resource);
-				}, function(err) {
-					deferred.reject(err);
-				});
-				return deferred.promise;
-			},
-			getUnitResource: function() {
-				var deferred = $q.defer();
-				serviceRegistry.getServiceInfo(serviceConfig).then(function(info) {
-					var resource = $resource(info.baseUri + 'units', null, {
-						'query': info.action({ method:'GET', isArray:true }),
-						'save': info.action({ method:'POST' }),
-					});
-					deferred.resolve(resource);
-				}, function(err) {
-					deferred.reject(err);
-				});
-				return deferred.promise;
-			},
-			getUnitChildrenResource: function() {
-				var deferred = $q.defer();
-				serviceRegistry.getServiceInfo(serviceConfig).then(function(info) {
-					var resource = $resource(info.baseUri + 'units/:id/children', { id: '@id' }, {
-						'query': info.action({ method:'GET', isArray:true }),
-					});
-					deferred.resolve(resource);
-				}, function(err) {
-					deferred.reject(err);
-				});
-				return deferred.promise;
-			},
-			groups: null,
-			roles: null,
-			permissions: null,
+	.factory('serviceUtil', ['$q', '$resource', 'serviceRegistry', function($q, $resource, serviceRegistry) {
+		var decorateActions = function(info, actions) {
+			var result = {};
+			if (actions) {
+				for (var prop in actions) {
+					result[prop] = info.action(actions[prop]);
+				}
+			}
+			return result;
 		};
+		var getResource = function(serviceConfig, resourceUri, paramDefaults, actions) {
+			var deferred = $q.defer();
+			serviceRegistry.getServiceInfo(serviceConfig).then(function(info) {
+				var resource = $resource(info.baseUri + resourceUri, paramDefaults, decorateActions(info, actions));
+				deferred.resolve(resource);
+			}, function(err) {
+				deferred.reject(err);
+			});
+			return deferred.promise;
+		};
+		
+		return {
+			getResource: getResource,
+		};
+	}])
+	
+	.factory('orgModelService', ['$q', '$resource', 'setup', 'serviceUtil', function($q, $resource, setup, serviceUtil) {
+		var serviceConfig = angular.copy(setup.services.omSrv);
+		var getUserResource = function() { 
+			return serviceUtil.getResource(serviceConfig, 'users/:id', { id: '@id' }, {
+				'query': { method:'GET' },
+				'create': { method:'POST' },
+			});
+		};
+		var getGroupResource = function() { 
+			return serviceUtil.getResource(serviceConfig, 'groups/:id', { id: '@id' }, {
+				'query': { method:'GET' },
+				'create': { method:'POST' },
+			});
+		};
+		var getGroupUsersResource = function(groupId) { 
+			return serviceUtil.getResource(serviceConfig, 'groups/:groupId/users/:userId', { groupId: groupId, userId: '@userId' }, {
+				'query': { method:'GET' },
+				'append': { method:'PUT' },
+				'remove': { method:'DELETE' },
+			});
+		};
+		var getUnitResource = function() { 
+			return serviceUtil.getResource(serviceConfig, 'units/:id', { id: '@id' }, {
+				'query': { method:'GET', isArray:true },
+				'create': { method:'POST' },
+				'update': { method:'PUT' },
+			});
+		};
+		var getUnitChildrenResource = function() { 
+			return serviceUtil.getResource(serviceConfig, 'units/:id/children', { id: '@id' }, {
+				'query': { method:'GET', isArray: true },
+			});
+		};
+		
+				
+		var theService = {
+			/***************************************** USERS *****************************************/
+			queryUsers: function(success, error) {
+				getUserResource().then(function(theResource) {
+					theResource.query(success, error);
+				}, error);
+			},
+			createUser: function(data, success, error) {
+				getUserResource().then(function(theResource) {
+					var payload = new theResource(data);
+					payload.$create().then(success, error);
+				}, error);
+			},
+			updateUser: function(data, success, error) {
+				getUserResource().then(function(theResource) {
+					var resourceId = data.Id;
+					// #REFACTOR to accept and ignore readonly properties like Id, ParentId, etc
+					delete data.Id; 
+					// #REFACTOR to accept Properties as JSON
+					if (data.Properties) data.Properties = JSON.stringify(data.Properties); 
+					var payload = new theResource(data);
+					payload.$update({ id: resourceId }).then(success, error);
+				}, error);
+			},
+			/***************************************** GROUPS *****************************************/
+			queryGroups: function(name, success, error) {
+				var params = null;
+				if (name) params = { "name": name };
+				getGroupResource().then(function(theResource) {
+					theResource.query(params, success, error);
+				}, error);
+			},
+			createGroup: function(data, success, error) {
+				getGroupResource().then(function(theResource) {
+					var payload = new theResource(data);
+					payload.$create().then(success, error);
+				}, error);
+			},
+			getOrCreateGroupByName: function(name, data, success, error) {
+				theService.queryGroups(name, function(groups) {
+					if (groups && groups.Items && groups.Items.length) {
+						success(groups.Items[0]);
+					}
+					else {
+						if (!data) data = { Name: name };
+						if (!data.Name) data.Name = name;
+						theService.createGroup(data, success, error);
+					}
+				}, error);
+			},
+			appendGroupMembers: function(groupId, userId, success, error) {
+				getGroupUsersResource(groupId).then(function(theResource) {
+					var payload = new theResource(userId);
+					payload.$append().then(success, error);
+				}, error);
+			},
+			removeGroupMembers: function(groupId, userId, success, error) {
+				getGroupUsersResource(groupId).then(function(theResource) {
+					var payload = new theResource(userId);
+					payload.$remove().then(success, error);
+				}, error);
+			},
+			/**************************************** UNITS ******************************************/
+			queryUnits: function(success, error) {
+				getUnitResource().then(function(theResource) {
+					theResource.query(success, error);
+				}, error);
+			},
+			createUnit: function(data, success, error) {
+				getUnitResource().then(function(theResource) {
+					var payload = new theResource(data);
+					payload.$create().then(success, error);
+				}, error);
+			},
+			updateUnit: function(data, success, error) {
+				getUnitResource().then(function(theResource) {
+					var resourceId = data.Id;
+					// #REFACTOR to accept and ignore readonly properties like Id, ParentId, etc
+					delete data.Id; 
+					// #REFACTOR to accept Properties as JSON
+					if (data.Properties) data.Properties = JSON.stringify(data.Properties); 
+					var payload = new theResource(data);
+					payload.$update({ id: resourceId }).then(success, error);
+				}, error);
+			},
+			queryUnitChildren: function(unitId, success, error) {
+				getUnitChildrenResource().then(function(theResource) {
+					theResource.query({ id: unitId }, success, error);
+				}, error);
+			},
+			
+		};
+		return theService;
 	}])
 	
 	
@@ -361,28 +483,25 @@
 		};
 	}])
 	
-	.controller('DcmsSetupOmOrganizationController', ['$scope', '$filter', '$mdToast', 'setup', 'orgModelService', function ($scope, $filter, $mdToast, setup, orgModelService) {
-		var errHandler = function(errMsg) { $mdToast.show($mdToast.simple().content(errMsg)); };
+	.controller('DcmsSetupOmOrganizationController', ['$scope', '$filter', '$mdToast', 'setup', 'orgModelService', 'errHandler', function ($scope, $filter, $mdToast, setup, orgModelService, errHandler) {
 		var getLocationRootUnit = function(callback) {
-			orgModelService.getUnitResource().then(function(unitRs) {
-				unitRs.query(function(units) {
-					var units = $filter('filter')(units, { Name: setup.locations.rootUnit }, true);
-					var locationsRoot = null;
-					if (units.length == 0) {
-						$mdToast.show($mdToast.simple().content('Creating root unit for locations...'));
-						unitRs.$save(new unitRs({ Name: setup.locations.rootUnit })).then(function(rs) {
-							$mdToast.show($mdToast.simple().content('Root unit for locations created succesfully.'));
-							callback(rs);
-						}, errHandler);
-					}
-					else {
-						locationsRoot = units[0];
-						$mdToast.show($mdToast.simple().content('Root unit for locations found: ' + locationsRoot));
-						callback(locationsRoot);
-					}
-					// Get all locations
-				}, errHandler);
-			});
+			orgModelService.queryUnits(function(units) {
+				var units = $filter('filter')(units, { Name: setup.locations.rootUnitName }, true);
+				var locationsRoot = null;
+				if (units.length == 0) {
+					$mdToast.show($mdToast.simple().content('Creating root unit for locations...'));
+					var unit = { Name: setup.locations.rootUnitName };
+					orgModelService.createUnit(unit, function(rootUnit) {
+						$mdToast.show($mdToast.simple().content('Root unit for locations created succesfully.'));
+						callback(rootUnit);
+					}, errHandler);
+				}
+				else {
+					locationsRoot = units[0];
+					$mdToast.show($mdToast.simple().content('Root unit for locations found: ' + locationsRoot.Name));
+					callback(locationsRoot);
+				}
+			}, errHandler);
 		}
 		
 		$scope.service = setup.services.omSrv;
@@ -390,33 +509,103 @@
 		$scope.locations = [];
 		
 		$scope.testConnection = function() {
-			orgModelService.getUserResource().then(function(userRs) {
-				if (userRs == null)
-					window.alert('Should not happen: userRs = null');
-				userRs.query(function(result) {
-					$mdToast.show($mdToast.simple().content('Connection is OK'));
-				}, errHandler);
-			});
-			
+			orgModelService.queryUsers(function(result) {
+				$mdToast.show($mdToast.simple().content('Connection is OK'));
+			}, errHandler);			
 		};
 		
 		var initLocations = true;
+		var locationsRootUnit = null;
 		$scope.onSelectLocations = function() {
 			if (initLocations) {
 				initLocations = false;
 				getLocationRootUnit(function(rootUnit) {
-					orgModelService.getUnitChildrenResource().then(function(ucRs) {
-						ucRs.query({id: rootUnit.Id}, function(locations) {
-							$scope.locations = locations;
-						});
-					});
+					locationsRootUnit = rootUnit;
+					orgModelService.queryUnitChildren(rootUnit.Id, function(locations) {
+						$scope.locations = locations;
+					}, errHandler);
 				});
 			};
 		};
 		
-		$scope.addLocation() {
+		$scope.beginEdit = function(location) {
+			if (location) {
+				$scope.viewLocation = {
+					Id: location.Id, 
+					Name: location.Name, 
+					Properties: location.Properties || {}
+				};
+			}
+			else {
+				$scope.viewLocation = { Name: 'new' };
+			}
+		};
+		$scope.cancelEdit = function() {
+			$scope.viewLocation = null;
+		};
+		
+		$scope.saveLocation = function(location) {
+			if (locationsRootUnit) {
+				if (location && location.Name) {
+					var locationId = location.Id;
+					if (locationId) {
+						orgModelService.updateUnit(location, function(unit) {
+							$mdToast.show($mdToast.simple().content('Location updated successfully.'));
+							$scope.locations.push(unit);
+							$scope.viewLocation = null;
+						}, errHandler);
+					}
+					else {
+						orgModelService.createUnit(location, function(unit) {
+							$mdToast.show($mdToast.simple().content('Location added successfully.'));
+							$scope.locations.push(unit);
+							$scope.viewLocation = null;
+						}, errHandler);
+					}
+				}
+			}
+			else {
+				window.alert('Should not happen: locationsRootUnit = null');
+			}
 		};
 
 	}])
 	
-	
+	.controller('DcmsSetupOmUsersController', ['$scope', '$mdToast', 'setup', 'orgModelService', 'errHandler', function ($scope, $mdToast, setup, orgModelService, errHandler) {
+		$scope.users = [];
+		$scope.beginEditUser = function(user) {
+			if (user) {
+				$scope.viewUser = {
+					Id: user.Id,
+					Username: user.Username,
+					Firstname: user.Firstname,
+					Lastname: user.Lastname,
+					Email: user.Email,
+					Properties: user.Properties,
+				};
+			}
+			else {
+				$scope.viewUser = { Username: 'newUser' };
+			}
+		};
+		$scope.cancelEdit = function() {
+			$scope.viewUser = null;
+		};
+		$scope.saveUser = function(userData) {
+			if (userData && userData.Username) {
+				if (userData.Id) {
+				}
+				else {
+					orgModelService.getOrCreateGroupByName(setup.groups.dcmsUsers, null, function(group) {
+					orgModelService.createUser(userData, function(user) {
+					orgModelService.appendGroupMembers(group.Id, user.Id, function() {
+						$mdToast.show($mdToast.simple().content('User added successfully.'));
+						$scope.users.push(userData);
+						$scope.viewUser = null;
+					}, errHandler);
+					}, errHandler);
+					}, errHandler);
+				}
+			}
+		};
+	}])
