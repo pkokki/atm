@@ -102,9 +102,9 @@
 				}
 			],
 			cachedTokens: {
-				default1: {
-					access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyODU4MTY5MSwibmJmIjoxNDI4NTc4MDkxfQ.ww6rMraRrp-VU2zycK72j9GppROJnZIWJWj5Wubs5Us",
-refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
+				default: {
+					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyOTAyMzg2MiwibmJmIjoxNDI5MDIwMjYyfQ.P0g4begcgMpK4TF5ChBSrk01h93GcaJwwAMzq34qhWw",
+  "refresh_token": "GKRLVN-NjHDtXwFevH1AgA2o2k3J3nMnlnPCZnujMKY"
 				},
 			},
 			services: {
@@ -222,8 +222,8 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 	
 	.factory('errHandler', ['$mdToast', function($mdToast) {
 		var errHandler = function(errMsg) { 
-			$mdToast.show($mdToast.simple().content(errMsg)); 
-			console.error(errMsg);
+			$mdToast.show($mdToast.simple().content('[' + errMsg.status + '] ' + errMsg.statusText)); 
+			console.error(JSON.stringify(errMsg));
 		};
 		
 		return errHandler;
@@ -301,6 +301,8 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 			return serviceUtil.getResource(serviceConfig, 'users/:id', { id: '@id' }, {
 				'query': { method:'GET' },
 				'create': { method:'POST' },
+				'update': { method:'PUT' },
+				'delete': { method:'DELETE' },
 			});
 		};
 		var getGroupResource = function() { 
@@ -311,7 +313,7 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 		};
 		var getGroupUsersResource = function(groupId) { 
 			return serviceUtil.getResource(serviceConfig, 'groups/:groupId/users/:userId', { groupId: groupId, userId: '@userId' }, {
-				'query': { method:'GET' },
+				'query': { method:'GET', isArray:true },
 				'append': { method:'PUT' },
 				'remove': { method:'DELETE' },
 			});
@@ -351,7 +353,14 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 					// #REFACTOR to accept Properties as JSON
 					if (data.Properties) data.Properties = JSON.stringify(data.Properties); 
 					var payload = new theResource(data);
-					payload.$update({ id: resourceId }).then(success, error);
+					payload.$update({ id: resourceId }, success, error);
+				}, error);
+			},
+			deleteUser: function(userId, success, error) {
+				// #REFACTOR support delete user
+				getUserResource().then(function(theResource) {
+					var payload = new theResource();
+					payload.$delete({ id: userId }).then(success, error);
 				}, error);
 			},
 			/***************************************** GROUPS *****************************************/
@@ -380,16 +389,31 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 					}
 				}, error);
 			},
+			queryGroupMembers : function(groupId, success, error) {
+				getGroupUsersResource(groupId).then(function(theResource) {
+					theResource.query(success, error);
+				}, error);
+			},
+			queryGroupMembersByName : function(name, success, error) {
+				theService.queryGroups(name, function(groups) {
+					if (groups && groups.Items && groups.Items.length) {
+						theService.queryGroupMembers(groups.Items[0].Id, success, error);
+					}
+					else {
+						success([]);
+					}
+				}, error);
+			},
 			appendGroupMembers: function(groupId, userId, success, error) {
 				getGroupUsersResource(groupId).then(function(theResource) {
-					var payload = new theResource(userId);
-					payload.$append().then(success, error);
+					var userIds = (userId.constructor === Array ? userId : [ userId ]);
+					theResource.append({}, userIds, success, error);
 				}, error);
 			},
 			removeGroupMembers: function(groupId, userId, success, error) {
 				getGroupUsersResource(groupId).then(function(theResource) {
 					var payload = new theResource(userId);
-					payload.$remove().then(success, error);
+					theResource.remove({ groupId: groupId, userId: userId }, success, error);
 				}, error);
 			},
 			/**************************************** UNITS ******************************************/
@@ -551,7 +575,11 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 					if (locationId) {
 						orgModelService.updateUnit(location, function(unit) {
 							$mdToast.show($mdToast.simple().content('Location updated successfully.'));
-							$scope.locations.push(unit);
+							angular.forEach($scope.locations, function(value, key) {
+								if (value.Id == unit.Id) {
+									this[key] = value;
+								}
+							}, $scope.locations);
 							$scope.viewLocation = null;
 						}, errHandler);
 					}
@@ -572,6 +600,8 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 	}])
 	
 	.controller('DcmsSetupOmUsersController', ['$scope', '$mdToast', 'setup', 'orgModelService', 'errHandler', function ($scope, $mdToast, setup, orgModelService, errHandler) {
+		var dcmsUsersGroup = null;
+		
 		$scope.users = [];
 		$scope.beginEditUser = function(user) {
 			if (user) {
@@ -581,7 +611,6 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 					Firstname: user.Firstname,
 					Lastname: user.Lastname,
 					Email: user.Email,
-					Properties: user.Properties,
 				};
 			}
 			else {
@@ -594,18 +623,32 @@ refresh_token: "g50hHPzCYHNIprZwLrnB5w5t-PVRdGk-F8FFATYVNdY"
 		$scope.saveUser = function(userData) {
 			if (userData && userData.Username) {
 				if (userData.Id) {
-				}
-				else {
-					orgModelService.getOrCreateGroupByName(setup.groups.dcmsUsers, null, function(group) {
-					orgModelService.createUser(userData, function(user) {
-					orgModelService.appendGroupMembers(group.Id, user.Id, function() {
-						$mdToast.show($mdToast.simple().content('User added successfully.'));
-						$scope.users.push(userData);
+					orgModelService.updateUser(userData, function(user) {
+						$mdToast.show($mdToast.simple().content('User updated successfully.'));
+						angular.forEach($scope.users, function(value, key) {
+							if (value.Id == user.Id) {
+								this[key] = value;
+							}
+						}, $scope.users);
 						$scope.viewUser = null;
 					}, errHandler);
-					}, errHandler);
+				}
+				else {
+					orgModelService.createUser(userData, function(user) {
+						orgModelService.appendGroupMembers(dcmsUsersGroup.Id, user.Id, function() {
+							$mdToast.show($mdToast.simple().content('User added successfully.'));
+							$scope.users.push(userData);
+							$scope.viewUser = null;
+						}, errHandler);
 					}, errHandler);
 				}
 			}
 		};
+		
+		orgModelService.getOrCreateGroupByName(setup.groups.dcmsUsers, null, function(group) {
+			dcmsUsersGroup = group;
+			orgModelService.queryGroupMembers(group.Id, function(users) {
+				$scope.users = users;
+			}, errHandler);
+		}, errHandler);
 	}])

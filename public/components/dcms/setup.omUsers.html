@@ -3,10 +3,36 @@
 <p>You must create the individuals who will be using the application you are
 implementing as users before you can set them up as accounts.</p>
 
-<p><md-button ng-click="beginEditUser()">Add new user</md-button></p>
+<div ng-show="!viewUser" >
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Username</th>
+				<th>Firstname</th>
+				<th>Lastname</th>
+				<th>Email</th>
+				<th>A</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="user in users">
+				<td>{{user.Username}}</td>
+				<td>{{user.Firstname}}</td>
+				<td>{{user.Lastname}}</td>
+				<td>{{user.Email}}</td>
+				<td><md-button ng-click="beginEditUser(user)">Edit</md-button></td>
+			</tr>
+		</tbody>
+	</table>
 
+	<p><md-button ng-click="beginEditUser()">Add new user</md-button></p>
+</div>
+	
 <div ng-show="viewUser" layout="column" layout-padding layout-margin>
 	<md-input-container><label>Username</label><input ng-model="viewUser.Username"></md-input-container>
+	<md-input-container><label>Firstname</label><input ng-model="viewUser.Firstname"></md-input-container>
+	<md-input-container><label>Lastname</label><input ng-model="viewUser.Lastname"></md-input-container>
+	<md-input-container><label>Email</label><input ng-model="viewUser.Email"></md-input-container>
 	
 	<p layout="row">
 		<md-button class="md-primary" ng-click="saveUser(viewUser)">Save</md-button>
