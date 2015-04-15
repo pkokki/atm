@@ -1,9 +1,54 @@
-﻿<h2>Setup role and group members</h2>
+﻿<h2>Setup permissions and unit members</h2>
 
-<h3>Roles</h3>
+<p><small>Permission set type must be Collections or users will not be able to log into DCMS.</small></p>
+<p><small>Collections managers need to have Collections permissions set.</small></p>
+<p><small>You can assign a user to multiple units, but a unit should have only one manager.</small></p>
+<p><small>Managers should be assigned to their own unit if they manage customers' delinquencies.</small></p>
+<p><small>If you are moving agents from one unit to another, do not remove them from their
+original unit. Instead, click Move and add them to the new unit. This will
+automatically end date their previous unit membership.</small></p>
 
-<p>Assign a role with a role type of Collections and a start date before today. Available system roles are Collections Agent and Collections Manager.</p>
 
-<h3>Groups</h3>
+<h3>Permissions</h3>
 
-<p>Assign a group and a start date before today.</p>
+<div layout="row" layout-margin>
+	<div flex>
+		<h4>Search users by name</h4>
+		<md-autocomplete
+			  md-min-length="2"
+			  md-delay="500"
+			  md-selected-item="selectedUser"
+			  md-search-text="searchUserText"
+			  md-items="item in queryUsers(searchUserText)"
+			  md-item-text="item.Username"
+			  placeholder="Find a user">
+			<span md-highlight-text="searchUserText" md-highlight-flags="^i">{{item.Username}}</span>
+		</md-autocomplete>
+	</div>
+	<div flex>
+		<h4>Search users by criteria</h4>
+		<p>Search by job title, competency, or other search criteria</p>
+	</div>
+</div>
+
+<div>
+	<h4>Assign permissions to selected users</h4>
+	<div layout="row" layout-align="start center" layout-margin>
+		<div>
+			<md-select placeholder="Pick permissions set" ng-model="permissionSet">
+				<md-option ng-value="set.id" ng-repeat="set in permissionSets">{{set.name}}</md-option>
+			</md-select>
+		</div>
+		
+			<md-input-container><label>From</label><input type="date" ng-model="permissionFromDate"></md-input-container>
+			<md-input-container><label>To</label><input type="date" ng-model="permissionToDate"></md-input-container>
+		
+		<div>
+			<md-button ng-disabled="!permissionSet || (!selectedUser || false)" ng-click="assignPermissions(permissionSet)">Assign</md-button>
+		</div>
+	</div>
+</div>
+
+<h3>Units members</h3>
+
+<p>Assign units to each user and select the positions they are going to have in each.</p>

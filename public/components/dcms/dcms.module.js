@@ -52,11 +52,16 @@
 				templateUrl: '/components/dcms/setup.omUsers.html', 
 				controller: 'DcmsSetupOmUsersController',
 			})
-			.state('dcms.setup.omGroups', { url: '/omGroups', templateUrl: '/components/dcms/setup.omGroups.html', })
-			.state('dcms.setup.omMembership', { url: '/omMembership', templateUrl: '/components/dcms/setup.omMembership.html', })
+			.state('dcms.setup.omUnits', { url: '/omUnits', templateUrl: '/components/dcms/setup.omUnits.html', })
+			.state('dcms.setup.omMembership', { 
+				url: '/omMembership', 
+				templateUrl: '/components/dcms/setup.omMembership.html', 
+				controller: 'DcmsSetupOmMembershipController',
+			})
 			.state('dcms.setup.omCollectors', { url: '/omCollectors', templateUrl: '/components/dcms/setup.omCollectors.html', })
 			.state('dcms.setup.omSecurity', { url: '/omSecurity', templateUrl: '/components/dcms/setup.omSecurity.html', })
 			.state('dcms.setup.domReceivables', { url: '/domReceivables', templateUrl: '/components/dcms/setup.domReceivables.html', })
+			.state('dcms.setup.infoSnippets', { url: '/infoSnippets', templateUrl: '/components/dcms/setup.infoSnippets.html', })
 			.state('dcms.setup.bpTasks', { url: '/bpTasks', templateUrl: '/components/dcms/setup.bpTasks.html', })
 			.state('dcms.setup.bpComments', { url: '/bpComments', templateUrl: '/components/dcms/setup.bpComments.html', })
 			.state('dcms.setup.bpHistory', { url: '/bpHistory', templateUrl: '/components/dcms/setup.bpHistory.html', })
@@ -103,8 +108,8 @@
 			],
 			cachedTokens: {
 				default: {
-					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyOTAyMzg2MiwibmJmIjoxNDI5MDIwMjYyfQ.P0g4begcgMpK4TF5ChBSrk01h93GcaJwwAMzq34qhWw",
-  "refresh_token": "GKRLVN-NjHDtXwFevH1AgA2o2k3J3nMnlnPCZnujMKY"
+					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyOTA5NjAzMSwibmJmIjoxNDI5MDkyNDMxfQ.Sc1XShSRN-rY_-wIPuA0CEJ3f0EKpP0cuYdoqAsjXZU",
+  "refresh_token": "YsATY-wh0M8UYokEhpgenK0ngi3udrsT67V5csCCvNA"
 				},
 			},
 			services: {
@@ -139,6 +144,12 @@
 			},
 			groups: {
 				dcmsUsers: '#DCMS_USERS',
+			},
+			permissions: {
+				sets: [ 
+					{ id: '1', name: 'Collections Agent' },
+					{ id: '2', name: 'Collections Manager' },
+				],
 			},
 		};
 		return setup;
@@ -224,6 +235,8 @@
 		var errHandler = function(errMsg) { 
 			$mdToast.show($mdToast.simple().content('[' + errMsg.status + '] ' + errMsg.statusText)); 
 			console.error(JSON.stringify(errMsg));
+			var err = new Error();
+			console.error('Stacktrace', err.stack);
 		};
 		
 		return errHandler;
@@ -334,9 +347,16 @@
 				
 		var theService = {
 			/***************************************** USERS *****************************************/
-			queryUsers: function(success, error) {
+			queryUsers: function(username, success, error) {
+				if (typeof(arguments[0]) === "function") {
+					error = success;
+					success = username;
+					username = null;
+				}
+				var params = null;
+				if (username) params = { "username": username };
 				getUserResource().then(function(theResource) {
-					theResource.query(success, error);
+					theResource.query(params, success, error);
 				}, error);
 			},
 			createUser: function(data, success, error) {
@@ -651,4 +671,27 @@
 				$scope.users = users;
 			}, errHandler);
 		}, errHandler);
+	}])
+	
+	.controller('DcmsSetupOmMembershipController', ['$scope', '$q', 'setup', 'orgModelService', 'errHandler', function($scope, $q, setup, orgModelService, errHandler) {
+		$scope.permissionSets = setup.permissions.sets;
+		$scope.selectedUser = null;
+		$scope.permissionFromDate = new Date();
+		
+		$scope.queryUsers = function(text) {
+			if (!text || text.length < 2) {
+				return [];
+			}
+			if ($scope.selectedUser && $scope.selectedUser.Username == text) {
+				return [$scope.selectedUser];
+			}
+			deferred = $q.defer();
+			orgModelService.queryUsers(text, function(result) {
+				deferred.resolve(result.Items);
+			}, errHandler);
+			return deferred.promise;
+		};
+		
+		$scope.assignPermissions = function(permissionSet) {
+		};
 	}])
