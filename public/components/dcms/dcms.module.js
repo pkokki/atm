@@ -3,7 +3,7 @@
 		'ngMaterial',
 		'ngMessages',
 	])
-	.config(['$stateProvider', '$urlRouterProvider', '$mdThemingProvider', function ($stateProvider, $urlRouterProvider, $mdThemingProvider) {
+	.config(['$stateProvider', '$urlRouterProvider', '$mdThemingProvider', '$mdIconProvider', function ($stateProvider, $urlRouterProvider, $mdThemingProvider, $mdIconProvider) {
 		//$mdThemingProvider.theme('altTheme')
 		//	.primaryPalette('blue')
 		//	.accentPalette('indigo')
@@ -11,6 +11,12 @@
 		//	.backgroundPalette('grey');
 		//$mdThemingProvider.setDefaultTheme('altTheme');
 		
+		$mdIconProvider
+			.iconSet('social', '/assets/img/social-icons.svg', 24)
+			.iconSet('device', '/assets/img/device-icons.svg', 24)
+			.iconSet('communication', '/assets/img/communication-icons.svg', 24)
+			.defaultIconSet('/assets/img/core-icons.svg', 24);
+
 		$urlRouterProvider
 			.when("/dcms", "/dcms/home")
 			.when("/dcms/workspace", "/dcms/workspace/inbox/")
@@ -61,7 +67,16 @@
 			.state('dcms.setup.omCollectors', { url: '/omCollectors', templateUrl: '/components/dcms/setup.omCollectors.html', })
 			.state('dcms.setup.omSecurity', { url: '/omSecurity', templateUrl: '/components/dcms/setup.omSecurity.html', })
 			.state('dcms.setup.domReceivables', { url: '/domReceivables', templateUrl: '/components/dcms/setup.domReceivables.html', })
-			.state('dcms.setup.infoSnippets', { url: '/infoSnippets', templateUrl: '/components/dcms/setup.infoSnippets.html', })
+			.state('dcms.setup.repository', { 
+				url: '/repository', 
+				templateUrl: '/components/dcms/setup.repository.html', 
+				controller: 'DcmsSetupRepositoryController',
+			})
+			.state('dcms.setup.infoSnippets', { 
+				url: '/infoSnippets', 
+				templateUrl: '/components/dcms/setup.infoSnippets.html', 
+				controller: 'DcmsSetupInfoSnippetsController',
+			})
 			.state('dcms.setup.bpTasks', { url: '/bpTasks', templateUrl: '/components/dcms/setup.bpTasks.html', })
 			.state('dcms.setup.bpComments', { url: '/bpComments', templateUrl: '/components/dcms/setup.bpComments.html', })
 			.state('dcms.setup.bpHistory', { url: '/bpHistory', templateUrl: '/components/dcms/setup.bpHistory.html', })
@@ -108,8 +123,8 @@
 			],
 			cachedTokens: {
 				default: {
-					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyOTA5NjAzMSwibmJmIjoxNDI5MDkyNDMxfQ.Sc1XShSRN-rY_-wIPuA0CEJ3f0EKpP0cuYdoqAsjXZU",
-  "refresh_token": "YsATY-wh0M8UYokEhpgenK0ngi3udrsT67V5csCCvNA"
+					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyOTE5ODY3NSwibmJmIjoxNDI5MTk1MDc1fQ.FH5dOIE1kS5-siVlPNDY29EH00Js85oSPFLv8uGM6To",
+  "refresh_token": "JHm2UClYVH7IYQaFvJVN9T7AzikZE68WMmuzHGAXUuE"
 				},
 			},
 			services: {
@@ -134,6 +149,11 @@
 				},
 				cmsSrv: {
 					uri: 'http://atlas-cmis.azurewebsites.net/api/',
+					securityType: 'oauth2',
+					oauth2: {
+						providerName: 'default',
+					},
+					dcmsRepository: '#DCMS',
 				},
 				bsSrv: {
 					uri: 'http://atlas-business.azurewebsites.net/api/',
@@ -149,6 +169,26 @@
 				sets: [ 
 					{ id: '1', name: 'Collections Agent' },
 					{ id: '2', name: 'Collections Manager' },
+				],
+			},
+			infoSnippets: {
+				types: [
+					{ code: 'DcmsAccount', name: 'Collections Account', description: '', active: false },
+					{ code: 'DcmsAdjustment', name: 'Collections Adjustment', description: '', active: false },
+					{ code: 'DcmsBankruptcy', name: 'Collections Bankruptcy', description: '', active: false },
+					{ code: 'DcmsBillTo', name: 'Collections Bill To', description: '', active: false },
+					{ code: 'DcmsCases', name: 'Collections Cases', description: '', active: false },
+					{ code: 'DcmsDelinquency', name: 'Collections Delinquency', description: '', active: false },
+					{ code: 'DcmsDispute', name: 'Collections Dispute', description: '', active: false },
+					{ code: 'DcmsDunning', name: 'Collections Dunning', description: '', active: false },
+					{ code: 'DcmsLeasingContract', name: 'Collections Leasing Contract', description: '', active: false },
+					{ code: 'DcmsLeasingInvoice', name: 'Collections Leasing Invoice', description: '', active: false },
+					{ code: 'DcmsLitigation', name: 'Collections Litigation', description: '', active: false },
+					{ code: 'DcmsPayment', name: 'Collections Payment', description: '', active: false },
+					{ code: 'DcmsPaymentReversal', name: 'Collections Payment Reversal', description: '', active: false },
+					{ code: 'DcmsPromiseToPay', name: 'Collections Promise to Pay', description: '', active: false },
+					{ code: 'DcmsRepossession', name: 'Collections Repossession', description: '', active: false },
+					{ code: 'DcmsWriteoff', name: 'Collections Writeoff', description: '', active: false },
 				],
 			},
 		};
@@ -281,7 +321,65 @@
 			},
 		}
 	}])
-	
+	/*
+	.factory('http', ['$http', 'tokenService', function($http, tokenService) {
+		var cachedTokens = {};
+		var concat = function(baseUri, resourceUri) {
+			return baseUri + resourceUri;
+		};
+		var decorate = function(serviceConfig, resourceUri, method, data, userConfig) {
+			var url = concat(serviceConfig.uri, resourceUri);
+			var config = {
+				method: method,
+				url: url,
+			};
+			if (data) {
+				config.data = config;
+			}
+			if (serviceConfig.securityType == 'oauth2') { 
+				var providerName = serviceConfig.oauth2.providerName;
+				var tokens = cachedTokens[providerName];
+				if (tokens) {
+					config.headers = { Authorization: "Bearer " + tokens.access_token };
+					return $http(angular.extend(userConfig || {}, config));
+				}
+				else {
+					var deferred = $q.defer();
+					var baseUri = getUriForName(providerName);
+					if (baseUri == null)
+						deferred.reject('No URI for provider ' + providerName);
+					tokenService
+						.createToken(baseUri, { username: 'JohnDoe', password: 'JohnDoe'})
+						.then(function(tokens) {
+							cachedTokens[providerName] = tokens;
+							config.headers = { Authorization: "Bearer " + tokens.access_token; };
+							deferred.resolve($http(angular.extend(userConfig || {}, config)));
+						}, function(err) {
+							deferred.reject(err);
+						});
+					return deferred.promise;
+				}
+			}
+			else {
+				return $http(angular.extend(userConfig || {}, config));
+			}
+		};
+		return {
+			get: function(serviceConfig, uri, config) { 
+				return decorate(serviceConfig, uri, 'GET', null, config);
+			},
+			post: function(serviceConfig, uri, data, config) { 
+				return decorate(serviceConfig, uri, 'POST', data, config);
+			},
+			put: function(serviceConfig, uri, data, config) { 
+				return decorate(serviceConfig, uri, 'PUT', data, config);
+			},
+			delete: function(serviceConfig, uri, config) { 
+				return decorate(serviceConfig, uri, 'DELETE', null, config);
+			},
+		};
+	}])
+	*/
 	.factory('serviceUtil', ['$q', '$resource', 'serviceRegistry', function($q, $resource, serviceRegistry) {
 		var decorateActions = function(info, actions) {
 			var result = {};
@@ -302,13 +400,96 @@
 			});
 			return deferred.promise;
 		};
-		
 		return {
 			getResource: getResource,
 		};
 	}])
 	
-	.factory('orgModelService', ['$q', '$resource', 'setup', 'serviceUtil', function($q, $resource, setup, serviceUtil) {
+	.factory('cmsService', ['setup', 'serviceUtil', function(setup, serviceUtil) {
+		var serviceConfig = setup.services.cmsSrv;
+		var getRepositoryResource = function() { 
+			return serviceUtil.getResource(serviceConfig, 'repositories/:id', { id: '@id' }, {
+				'query': { method:'GET' },
+				'create': { method:'POST' },
+				'update': { method:'PUT' },
+				'delete': { method:'DELETE' },
+			});
+		};
+		
+		var _getRepositoryByName = function(page, name, success, error) {
+			theService.queryRepositories(page, function(list) {
+				if (list && list.items) {
+					var repository = null;
+					for (var i = 0; i < list.items.length; i++) {
+						if (list.items[i].Name == name) {
+							repository = list.items[i];
+							break;
+						}
+					}
+					if (repository != null) {
+						success(repository);
+					}
+					else if (list.page < list.numPages) {
+						_getRepositoryByName(list.page + 1, name, success, error);
+					}
+					else {
+						success(null);
+					}
+				}
+				else {
+					success(null);
+				}
+			}, error);
+		};
+		
+		var theService = {
+			queryRepositories: function(page, pageSize, success, error) {
+				if (typeof(arguments[0]) === "function") {
+					error = pageSize;
+					success = page;
+					pageSize = null;
+					page = null;
+				}
+				else if (typeof(arguments[1]) === "function") {
+					error = success;
+					success = pageSize;
+					pageSize = null;
+				}
+				var params = null;
+				if (page) params = angular.extend(params || {}, { page: page });
+				if (pageSize) params = angular.extend(params || {}, { pageSize: pageSize });
+				
+				getRepositoryResource().then(function(theResource) {
+					theResource.query(params, success, error);
+				}, error);
+			},
+			getRepositoryByName: function(name, success, error) {
+				_getRepositoryByName(1, name, success, error);
+			},
+			createRepository: function(data, success, error) {
+				getRepositoryResource().then(function(theResource) {
+					var payload = new theResource(data);
+					payload.$create().then(success, error);
+				}, error);
+			},
+			updateRepository: function(data, success, error) {
+				getRepositoryResource().then(function(theResource) {
+					var payload = new theResource(data);
+					payload.$update({ id: data.Id }, success, error);
+				}, error);
+			},
+			deleteRepository: function(id, success, error) {
+				// #REFACTOR support delete repository
+				getRepositoryResource().then(function(theResource) {
+					var payload = new theResource();
+					payload.$delete({ id: id }).then(success, error);
+				}, error);
+			},
+		};
+		return theService;
+	}])
+	
+	.factory('orgModelService', ['setup', 'serviceUtil', function(setup, serviceUtil) {
 		var serviceConfig = angular.copy(setup.services.omSrv);
 		var getUserResource = function() { 
 			return serviceUtil.getResource(serviceConfig, 'users/:id', { id: '@id' }, {
@@ -468,6 +649,10 @@
 		};
 		return theService;
 	}])
+	
+	/******************************************************************************************************************
+	DIRECTIVES ********************************************************************************************************
+	*******************************************************************************************************************/
 	
 	
 	/******************************************************************************************************************
@@ -693,5 +878,62 @@
 		};
 		
 		$scope.assignPermissions = function(permissionSet) {
+		};
+	}])
+
+	.controller('DcmsSetupRepositoryController', ['$scope', '$mdToast', '$mdDialog', 'setup', 'cmsService', 'errHandler', function($scope, $mdToast, $mdDialog, setup, cmsService, errHandler) {
+		var showAlert = function(title, text, ev) {
+			$mdDialog.show(
+				$mdDialog.alert()
+					//.parent(angular.element(document.body))
+					.title(title)
+					.content(text)
+					.ariaLabel(title)
+					.ok('Close')
+					.targetEvent(ev)
+			);
+		};
+		var handleRepositoryResponse = function(repository) {
+			if (repository) {
+				showAlert(repository.Name, 'id: ' + repository.Id 
+					+ ', RootFolderId: ' + repository.RootFolderId 
+					+ ', Description: ' + (repository.Description || '-')
+				);
+			}
+			else {
+				showAlert(name, 'Repository not found!');
+			}
+		};
+
+		$scope.serviceConfig = setup.services.cmsSrv;
+		$scope.oauthProviders = setup.oauthProviders;
+
+		$scope.testConnection = function() {
+			cmsService.queryRepositories(function(result) {
+				$mdToast.show($mdToast.simple().content('Connection is OK'));
+			}, errHandler);	
+		};
+		$scope.showRepository = function(name) {
+			cmsService.getRepositoryByName(name, handleRepositoryResponse, errHandler);	
+		};
+		$scope.createRepository = function(name) {
+			if (name) {
+				cmsService.getRepositoryByName(name, function(repository) {
+					if (repository == null) 
+						cmsService.createRepository({ Name: name}, handleRepositoryResponse, errHandler);
+					else
+						showAlert(name, 'Repository already exists!');
+				}, errHandler);	
+			}
+		};
+	}])
+	
+	.controller('DcmsSetupInfoSnippetsController', ['$scope', 'setup', function($scope, setup) {
+		$scope.serviceConfig = setup.services.omSrv;
+		$scope.oauthProviders = setup.oauthProviders;
+	
+		$scope.types = setup.infoSnippets.types;
+		$scope.showSnippetType = function(type) {
+			alert(JSON.stringify(type));
 		};
 	}])

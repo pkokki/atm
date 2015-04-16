@@ -1,0 +1,40 @@
+﻿<h2>Setup content repository</h2>
+
+<div layout="column" layout-padding layout-margin>
+	<md-input-container><label>Backend service URL</label><input ng-model="serviceConfig.uri"></md-input-container>
+	
+	<md-radio-group ng-model="serviceConfig.securityType" layout="row" layout-align="start center">
+		<div>Security</div>
+		<md-radio-button value="none">None</md-radio-button>
+		<md-radio-button value="keys">API keys</md-radio-button>
+		<md-radio-button value="oauth2">OAuth v2.0 tokens</md-radio-button>
+	</md-radio-group>
+	
+	<div ng-show="serviceConfig.securityType == 'oauth2'">
+		<md-input-container class="md-input-has-value">
+			<label>OAuth2 provider</label>
+			<md-select ng-model="serviceConfig.oauth2.providerName" placeholder="Select...">
+				<md-option ng-value="oauthProvider.name" ng-repeat="oauthProvider in oauthProviders | filter: {active: true }">
+					{{oauthProvider.name}}
+				</md-option>
+			</md-select>
+		</md-input-container>
+	</div>
+	
+	<md-button ng-click="testConnection()">Test connection</md-button>
+	
+	<md-input-container><label>Repository name</label><input ng-model="serviceConfig.dcmsRepository"></md-input-container>
+	
+	<div layout="row">
+		<md-button flex 
+			ng-disabled="!serviceConfig.dcmsRepository" 
+			ng-click="showRepository(serviceConfig.dcmsRepository)">
+				Get repository information
+		</md-button>
+		<md-button flex 
+			ng-disabled="!serviceConfig.dcmsRepository" 
+			ng-click="createRepository(serviceConfig.dcmsRepository)">
+				Create repository
+		</md-button>
+	</div>
+</div>

@@ -1,0 +1,26 @@
+﻿<h2>Setup info snippets</h2>
+
+
+<p><small>Info snippets is a DCMS Foundation Entity which comes with a set of predefined
+DCMS info snippets types. You can choose whether or not you want to use the predefined 
+set of snippet types. You can also create customized snippet types of your own.</small></p>
+<p><small>Info snippets created in DCMS are always associated to the organization and
+person, if identified. Additionally, snippets can be associated with other objects related to
+the activity during which they were created, such as a payment, a dispute, or a promise to pay.</small></p>
+
+<h3>Predefined info snippet types</h3>
+
+<md-content style="height: 400px;">	
+	<md-list>
+		<md-list-item ng-repeat="type in types">
+			<div layout="row" layout-align="center center" layout-margin>
+				<md-icon md-svg-icon="{{type.icon || 'apps'}}"></md-icon>
+				<div flex ng-click="showSnippetType(type)" >
+					<p>{{type.name}}</p>
+					<p>{{type.description}}</p>
+				</div>
+				<md-switch class="md-secondary" ng-model="type.active" aria-label="{{type.name}}">
+			</div>
+		</md-list-item>
+	</md-list>
+</md-content>
