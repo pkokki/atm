@@ -121,12 +121,6 @@
 					active: true, 
 				}
 			],
-			cachedTokens: {
-				default: {
-					"access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiJlOTM2NmEzZS1lZDU5LTQ2NWItYWM1Ny0wMjUzNGYyMjFlMDciLCJ1bmlxdWVfbmFtZSI6IkpvaG5Eb2UiLCJpc3MiOiJhdGxhcy5pZCIsImV4cCI6MTQyOTE5ODY3NSwibmJmIjoxNDI5MTk1MDc1fQ.FH5dOIE1kS5-siVlPNDY29EH00Js85oSPFLv8uGM6To",
-  "refresh_token": "JHm2UClYVH7IYQaFvJVN9T7AzikZE68WMmuzHGAXUuE"
-				},
-			},
 			services: {
 				omSrv: {
 					uri: 'http://atlas-orgmodel.azurewebsites.net/api/',
@@ -154,6 +148,28 @@
 						providerName: 'default',
 					},
 					dcmsRepository: '#DCMS',
+					infoSnippetType: {
+						Name: '#DcmsInfoSnippet',
+						BaseId: 'Document',
+						Description: 'Abstract info snippet document type',
+						DisplayName: '#DcmsInfoSnippet',
+						QueryName: '#DcmsInfoSnippet',
+						IsCreatable: false,
+					},
+					predefinedInfoSnippetType: {
+						Name: '#DcmsPredefinedInfoSnippet',
+						BaseId: 'Document',
+						Description: 'Base document type for predefined info snippets',
+						DisplayName: '#DcmsPredefinedInfoSnippet',
+						QueryName: '#DcmsPredefinedInfoSnippet',
+					},
+					customInfoSnippetType: {
+						Name: '#DcmsCustomInfoSnippet',
+						BaseId: 'Document',
+						/*Description: '',*/
+						DisplayName: '#DcmsCustomInfoSnippet',
+						QueryName: '#DcmsCustomInfoSnippet',
+					},
 				},
 				bsSrv: {
 					uri: 'http://atlas-business.azurewebsites.net/api/',
@@ -195,7 +211,7 @@
 		return setup;
 	}])
 	
-	.factory('serviceRegistry', ['$q', 'setup', 'tokenService', function($q, setup, tokenService) {
+	.factory('serviceRegistry', ['$q', '$window', 'setup', 'tokenService', function($q, $window, setup, tokenService) {
 		var getUriForName = function(name) {
 			var list = setup.oauthProviders;
 			if (list && list.length) {
@@ -210,18 +226,40 @@
 			//	return result.data;
 			//},
 			responseError: function (rejection) {
-				console.warn('Failed with ' + rejection.status + ' status');
 				if (rejection.status == 401) {
+					console.warn('Failed with ' + rejection.status + ' status.');
+					var providerName = rejection.config.oauth2ProviderName;
+					if (providerName) {
+						var tokens = getCachedTokens(providerName);
+						if (tokens && tokens.refresh_token) {
+							console.warn('Trying to refresh the token for provider [' + providerName + '].');
+							var baseUri = getUriForName(providerName);
+							tokenService.refreshToken(baseUri, tokens.refresh_token)
+								.then(function(tokens) {
+									setCachedTokens(providerName, tokens);
+								});
+						}
+						else {
+							setCachedTokens(providerName, null);
+						}
+					}
 				}
 				return $q.reject(rejection);
 			}
 		};
-		var cache = setup.cachedTokens;
+		
+		// #REFACTOR: this two methods could be a new autonomous service
 		var getCachedTokens = function(name) {
-			return cache[name];
+			var tokens = $window.sessionStorage.getItem('oauth_tokens_' + name);
+			return JSON.parse(tokens);
 		};
 		var setCachedTokens = function(name, tokens) {
-			cache[name] = tokens;
+			if (tokens) {
+				$window.sessionStorage.setItem('oauth_tokens_' + name, JSON.stringify(tokens));
+			}
+			else {
+				$window.sessionStorage.removeItem('oauth_tokens_' + name);
+			}
 		};
 		
 		return {
@@ -241,6 +279,8 @@
 				};
 				if (serviceConfig.securityType == 'oauth2') { 
 					var providerName = serviceConfig.oauth2.providerName;
+					template.oauth2ProviderName = providerName;
+					
 					var tokens = getCachedTokens(providerName);
 					if (tokens) {
 						template.headers.Authorization = "Bearer " + tokens.access_token;
@@ -254,7 +294,7 @@
 						tokenService
 							.createToken(baseUri, { username: 'JohnDoe', password: 'JohnDoe'})
 							.then(function(tokens) {
-								setCachedTokens(providerName, tokens)
+								setCachedTokens(providerName, tokens);
 								template.headers.Authorization = "Bearer " + tokens.access_token;
 								template.interceptor = http401;
 								deferred.resolve(info);
@@ -305,6 +345,23 @@
 					});
 				return deferred.promise;
 			},
+			refreshToken: function(baseUri, refreshToken) {
+				var deferred = $q.defer();
+				var tokenResource = $resource(baseUri + 'auth/tokens');
+				var tokenRs = new tokenResource({
+					granttype: "refresh_token", 
+					refreshtoken : refreshToken
+				});
+				tokenRs.$save()
+					.then(function(rs) {
+						rs.status = 200;
+						deferred.resolve(rs);
+					})
+					.catch(function(rs) {
+						deferred.resolve(rs);
+					});
+				return deferred.promise;
+			},
 			deleteToken: function(baseUri, refreshToken) {
 				var deferred = $q.defer();
 				var tokenResource = $resource(baseUri + 'auth/tokens/' + refreshToken);
@@ -321,65 +378,8 @@
 			},
 		}
 	}])
-	/*
-	.factory('http', ['$http', 'tokenService', function($http, tokenService) {
-		var cachedTokens = {};
-		var concat = function(baseUri, resourceUri) {
-			return baseUri + resourceUri;
-		};
-		var decorate = function(serviceConfig, resourceUri, method, data, userConfig) {
-			var url = concat(serviceConfig.uri, resourceUri);
-			var config = {
-				method: method,
-				url: url,
-			};
-			if (data) {
-				config.data = config;
-			}
-			if (serviceConfig.securityType == 'oauth2') { 
-				var providerName = serviceConfig.oauth2.providerName;
-				var tokens = cachedTokens[providerName];
-				if (tokens) {
-					config.headers = { Authorization: "Bearer " + tokens.access_token };
-					return $http(angular.extend(userConfig || {}, config));
-				}
-				else {
-					var deferred = $q.defer();
-					var baseUri = getUriForName(providerName);
-					if (baseUri == null)
-						deferred.reject('No URI for provider ' + providerName);
-					tokenService
-						.createToken(baseUri, { username: 'JohnDoe', password: 'JohnDoe'})
-						.then(function(tokens) {
-							cachedTokens[providerName] = tokens;
-							config.headers = { Authorization: "Bearer " + tokens.access_token; };
-							deferred.resolve($http(angular.extend(userConfig || {}, config)));
-						}, function(err) {
-							deferred.reject(err);
-						});
-					return deferred.promise;
-				}
-			}
-			else {
-				return $http(angular.extend(userConfig || {}, config));
-			}
-		};
-		return {
-			get: function(serviceConfig, uri, config) { 
-				return decorate(serviceConfig, uri, 'GET', null, config);
-			},
-			post: function(serviceConfig, uri, data, config) { 
-				return decorate(serviceConfig, uri, 'POST', data, config);
-			},
-			put: function(serviceConfig, uri, data, config) { 
-				return decorate(serviceConfig, uri, 'PUT', data, config);
-			},
-			delete: function(serviceConfig, uri, config) { 
-				return decorate(serviceConfig, uri, 'DELETE', null, config);
-			},
-		};
-	}])
-	*/
+	
+	
 	.factory('serviceUtil', ['$q', '$resource', 'serviceRegistry', function($q, $resource, serviceRegistry) {
 		var decorateActions = function(info, actions) {
 			var result = {};
@@ -413,6 +413,28 @@
 				'create': { method:'POST' },
 				'update': { method:'PUT' },
 				'delete': { method:'DELETE' },
+			});
+		};
+		var getRepositoryTypeResource = function() {
+			return serviceUtil.getResource(serviceConfig, 'repositories/:repoId/types/:objTypeId', { repoId: '@repoId', objTypeId: '@objTypeId' }, {
+				'get': { method:'GET', params: { objTypeId: 0 } },
+				'query': { method:'GET' },
+				'create': { method:'POST' },
+				'update': { method:'PUT' },
+				'delete': { method:'DELETE' },
+			});
+		};
+		var getRepositoryTypeChildrenResource = function() {
+			return serviceUtil.getResource(serviceConfig, 'repositories/:repoId/typechildren/:objTypeId', { repoId: '@repoId', objTypeId: '@objTypeId' }, {
+				'get': { method:'GET', params: { objTypeId: 0 } },
+				'query': { method:'GET' },
+				'create': { method:'POST' },
+			});
+		};
+		var getRepositoryTypeDescendantResource = function() {
+			return serviceUtil.getResource(serviceConfig, 'repositories/:repoId/typedescendants/:objTypeId', { repoId: '@repoId', objTypeId: '@objTypeId' }, {
+				'get': { method:'GET', params: { objTypeId: 0 } },
+				'query': { method:'GET' },
 			});
 		};
 		
@@ -484,6 +506,234 @@
 					var payload = new theResource();
 					payload.$delete({ id: id }).then(success, error);
 				}, error);
+			},
+			/* params: { repoId, [objTypeId], [depth], [includePropertyDefinitions] } */
+			getObjectTypes: function(params, success, error) {
+				if (params.repoId) {
+					getRepositoryTypeDescendantResource().then(function(theResource) {
+						theResource.query(params, function(result) {
+							success(result.items);
+						}, error);
+					}, error);
+				}
+				else {
+					error('getObjectTypes: The repoId parameter is required.');
+				}
+			},
+			/* params: { repoId, [parentId], typeData } */
+			createObjectType: function(params, success, error) {
+				if (!params.parentId && !params.typeData.ParentId)
+					error('createObjectType: The parentId is required');
+				else if (!params.repoId)
+					error('createObjectType: The repoId parameter is required');
+				else if (!params.typeData)
+					error('createObjectType: The typeData parameter is required');
+				else {
+					getRepositoryTypeChildrenResource().then(function(theResource) {
+						if (params.parentId) params.typeData.ParentId = params.parentId;
+						var payload = new theResource(params.typeData);
+						payload.$create({ repoId: params.repoId }, success, error);
+					}, error);
+				}
+			},
+			/* params: { repoId, [objectTypeId], typeData } */
+			updateObjectType: function(params, success, error) {
+				if (!params.objectTypeId && !params.typeData.Id)
+					error('updateObjectType: The id is required');
+				else if (!params.repoId)
+					error('updateObjectType: The repoId parameter is required');
+				else if (!params.typeData)
+					error('updateObjectType: The typeData parameter is required');
+				else {
+					getRepositoryTypeResource().then(function(theResource) {
+						if (params.objectTypeId) params.typeData.Id = params.objectTypeId;
+						var payload = new theResource(params.typeData);
+						payload.$update({ repoId: params.repoId, objTypeId: params.typeData.Id }, success, error);
+					}, error);
+				}
+			},
+		};
+		return theService;
+	}])
+	
+	.factory('dcmsRepository', ['setup', 'cmsService', function(setup, cmsService) {
+		var cachedRepository = null,
+			typeCache = null;
+		var getRepository = function(success, error) {
+			var repoName = setup.services.cmsSrv.dcmsRepository;
+			if (cachedRepository && cachedRepository.Name == repoName) {
+				success(cachedRepository);
+			}
+			else {
+				cmsService.getRepositoryByName(repoName, function(repository) {
+					cachedRepository = repository;
+					typeCache = null;
+					success(repository);
+				}, error);
+			}
+		};
+		/*
+		{
+			documentType: <type>,
+				infoSnippetBaseType: <type>,
+					predefinedInfoSnippetType: <type>,
+						predefinedInfoSnippetTypes: [<type>],
+					customInfoSnippetType: <type>,
+						customInfoSnippetTypes: [<type>],
+			folderType: <type>,
+		}
+		*/
+		var getRegistry = function(success, error) {
+			if (typeCache) {
+				success(typeCache);
+			}
+			else {
+				getRepository(function(repository) {
+					var params = { 
+						repoId: repository.Id,
+						depth: 4,
+					};
+					cmsService.getObjectTypes(params, function(objTypes) {
+						typeCache = {};
+						typeCache.repository = repository;
+						// Cache all types
+						typeCache.all = objTypes;
+						// Cache base infoSnippetType
+						typeCache.infoSnippetBaseType = null;
+						for (var i=0; i<objTypes.length; i++) {
+							objType = objTypes[i];
+							if (objType.ParentId == 0 && objType.BaseId == 'Document')
+								typeCache.documentType = objType;
+							else if (objType.ParentId == 0 && objType.BaseId == 'Folder')
+								typeCache.folderType = objType;
+							else if (objType.Name == setup.services.cmsSrv.infoSnippetType.Name && objType.BaseId == 'Document')
+								typeCache.infoSnippetBaseType = objType;
+							else if (objType.Name == setup.services.cmsSrv.predefinedInfoSnippetType.Name && objType.BaseId == 'Document')
+								typeCache.predefinedInfoSnippetType = objType;
+							else if (objType.Name == setup.services.cmsSrv.customInfoSnippetType.Name && objType.BaseId == 'Document')
+								typeCache.customInfoSnippetType = objType;
+						};
+						// Sanity checks
+						if (typeCache.predefinedInfoSnippetType 
+							&& typeCache.predefinedInfoSnippetType.ParentId != typeCache.infoSnippetBaseType.Id)
+							typeCache.predefinedInfoSnippetType = null;
+						if (typeCache.customInfoSnippetType 
+							&& typeCache.customInfoSnippetType.ParentId != typeCache.infoSnippetBaseType.Id)
+							typeCache.customInfoSnippetType = null;
+						// Cache active infoSnippetTypes
+						typeCache.predefinedInfoSnippetTypes = [];
+						typeCache.customInfoSnippetTypes = [];
+						for (var i=0; i<objTypes.length; i++) {
+							objType = objTypes[i];
+							if (typeCache.predefinedInfoSnippetType && objType.ParentId == typeCache.predefinedInfoSnippetType.Id)
+								typeCache.predefinedInfoSnippetTypes.push(objType);
+							else if (typeCache.customInfoSnippetType && objType.ParentId == typeCache.customInfoSnippetType.Id)
+								typeCache.customInfoSnippetTypes.push(objType);
+						};
+						// Finish building cache
+						success(typeCache);
+					}, error);
+				}, error);
+			}
+		};
+		var getOrCreateBaseInfoSnippetType = function(success, error) {
+			getRegistry(function(registry) {
+				if (registry.infoSnippetBaseType) {
+					success(registry.infoSnippetBaseType);
+				}
+				else {
+					if (registry.documentType) {
+						var params = {
+							repoId: registry.repository.Id, 
+							parentId: registry.documentType.Id, 
+							typeData: setup.services.cmsSrv.infoSnippetType
+						};
+						cmsService.createObjectType(params, function(objType) {
+							registry.infoSnippetBaseType = objType;
+							success(objType);
+						}, error);
+					}
+					else {
+						error('Repository is not initialized for DCMS.');
+					}
+				}
+			}, error);
+		};
+		var createInfoSnippetSubtype = function(registryTypeName, typeData, success, error) {
+			getRegistry(function(registry) {
+				if (registry[registryTypeName]) {
+					error('dcmsRepository.createInfoSnippetSubtype: The subtype [' + registryTypeName + '] is already created.');
+				}
+				else {
+					getOrCreateBaseInfoSnippetType(function(baseType) {
+						var params = {
+							repoId: registry.repository.Id, 
+							parentId: baseType.Id, 
+							typeData: typeData
+						};
+						cmsService.createObjectType(params, function(objType) {
+							registry[registryTypeName] = objType;
+							success(objType);
+						}, error);
+					}, error);
+				}
+			}, error);
+		};
+		var updateInfoSnippetSubtype = function(registryTypeName, typeData, success, error) {
+			getRegistry(function(registry) {
+				if (!registry[registryTypeName]) {
+					error('dcmsRepository.updateInfoSnippetBaseType: The subtype [' + registryTypeName + '] is not created.');
+				}
+				else {
+					var params = {
+						repoId: registry.repository.Id, 
+						objectTypeId: registry[registryTypeName].Id,
+						typeData: typeData
+					};
+					cmsService.updateObjectType(params, function(objType) {
+						registry[registryTypeName] = objType;
+						success(objType);
+					}, error);
+				}
+			}, error);
+		};
+		
+		var theService = {
+			getInfoSnippetType: function(success, error) {
+				getRegistry(function(registry) {
+					success(registry.infoSnippetBaseType);
+				}, error);
+			},
+			getPredefinedInfoSnippetType: function(success, error) {
+				getRegistry(function(registry) {
+					success(registry.predefinedInfoSnippetType);
+				}, error);
+			},
+			createPredefinedInfoSnippetBaseType: function(success, error) {
+				createInfoSnippetSubtype('predefinedInfoSnippetType', setup.services.cmsSrv.predefinedInfoSnippetType, success, error);
+			},
+			updatePredefinedInfoSnippetBaseType: function(success, error) {
+				updateInfoSnippetSubtype('predefinedInfoSnippetType', setup.services.cmsSrv.predefinedInfoSnippetType, success, error);
+			},
+			getCustomInfoSnippetType: function(success, error) {
+				getRegistry(function(registry) {
+					success(registry.customInfoSnippetType);
+				}, error);
+			},
+			createCustomInfoSnippetBaseType: function(success, error) {
+				createInfoSnippetSubtype('customInfoSnippetType', setup.services.cmsSrv.customInfoSnippetType, success, error);
+			},
+			updateCustomInfoSnippetBaseType: function(success, error) {
+				updateInfoSnippetSubtype('customInfoSnippetType', setup.services.cmsSrv.customInfoSnippetType, success, error);
+			},
+			getPredefinedInfoSnippetTypes: function(success, error) {
+				getRegistry(function(registry) {
+					success(registry.infoSnippetTypes);
+				}, error);
+			},
+			appendCustomInfoSnippetType: function(code, success, error) {
+			},
+			removeCustomInfoSnippetType: function(code, success, error) {
 			},
 		};
 		return theService;
@@ -928,12 +1178,54 @@
 		};
 	}])
 	
-	.controller('DcmsSetupInfoSnippetsController', ['$scope', 'setup', function($scope, setup) {
-		$scope.serviceConfig = setup.services.omSrv;
-		$scope.oauthProviders = setup.oauthProviders;
-	
-		$scope.types = setup.infoSnippets.types;
-		$scope.showSnippetType = function(type) {
-			alert(JSON.stringify(type));
+	.controller('DcmsSetupInfoSnippetsController', ['$scope', 'setup', 'errHandler', 'dcmsRepository', function($scope, setup, errHandler, dcmsRepository) {
+
+		dcmsRepository.getPredefinedInfoSnippetType(function(objType) {
+			$scope.predefinedBaseType = objType;
+			if (objType) {
+				$scope.usePredefinedSnippets = objType.IsCreatable;
+				dcmsRepository.getPredefinedInfoSnippetTypes(function(activeTypes) {
+					// Update active flags if found
+					var allTypes = setup.infoSnippets.types;
+					if (activeTypes && activeTypes.length) {
+						for (var i=0; i<allTypes.length; i++) {
+							var targetType = allTypes[i];
+							for (var j=0; j<activeTypes.length; j++)
+								if (activeTypes[j].Name == targetType.code)
+									targetType.active = true;
+						}
+					}
+					$scope.types = allTypes;
+				}, errHandler);
+			}
+		}, errHandler);
+
+		$scope.togglePredefinedSnippets = function() {
+			$scope.predefinedBaseType.IsCreatable = !($scope.predefinedBaseType.IsCreatable);
+			// #TODO: Update document type
+			console.warn('#TODO: Update document type');
+		};
+
+		$scope.viewPredefinedBaseType = function() {
+		};
+		
+		$scope.createPredefinedBaseType = function() {
+			dcmsRepository.createPredefinedInfoSnippetBaseType(function(objType) {
+				$scope.predefinedBaseType = objType;
+			}, errHandler);
+		};
+		$scope.updatePredefinedBaseType = function() {
+			dcmsRepository.updatePredefinedInfoSnippetBaseType(function(objType) {
+				$scope.predefinedBaseType = objType;
+			}, errHandler);
+		};
+
+		$scope.togglePredefinedType = function(type) {
+			if (type.active) {
+				alert("Create " + type.code);
+			}
+			else {
+				alert("Delete " + type.code);
+			}
 		};
 	}])

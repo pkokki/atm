@@ -8,19 +8,47 @@ set of snippet types. You can also create customized snippet types of your own.<
 person, if identified. Additionally, snippets can be associated with other objects related to
 the activity during which they were created, such as a payment, a dispute, or a promise to pay.</small></p>
 
+
+
 <h3>Predefined info snippet types</h3>
 
-<md-content style="height: 400px;">	
-	<md-list>
-		<md-list-item ng-repeat="type in types">
-			<div layout="row" layout-align="center center" layout-margin>
-				<md-icon md-svg-icon="{{type.icon || 'apps'}}"></md-icon>
-				<div flex ng-click="showSnippetType(type)" >
-					<p>{{type.name}}</p>
-					<p>{{type.description}}</p>
+<div layout="row" layout-align="start center" layout-padding>
+	<div>Predefined snippet document type: </div>
+	<md-button  
+		ng-disabled="!predefinedBaseType" 
+		ng-click="viewPredefinedBaseType()">
+			Details
+	</md-button>
+	<md-button  
+		ng-disabled="predefinedBaseType" 
+		ng-click="createPredefinedBaseType()">
+			Create
+	</md-button>
+	<md-button  
+		ng-disabled="!predefinedBaseType" 
+		ng-click="updatePredefinedBaseType()">
+			Update
+	</md-button>
+</div>
+
+<div ng-show="predefinedBaseType">
+	<md-checkbox ng-checked="usePredefinedSnippets" ng-click="togglePredefinedSnippets()" aria-label="use predefined types">
+		Use the predefined set of snippet types
+	</md-checkbox>
+
+	<md-content style="height: 400px;" ng-show="predefinedBaseType.IsCreatable">	
+		<md-list>
+			<md-list-item ng-repeat="type in types">
+				<div layout="row" layout-align="center center" layout-margin>
+					<md-icon md-svg-icon="{{type.icon || 'apps'}}"></md-icon>
+					<div flex>
+						<p>{{type.name}}</p>
+						<p>{{type.description}}</p>
+					</div>
+					<md-switch class="md-secondary" ng-change="togglePredefinedType(type)" ng-model="type.active" aria-label="{{type.name}}">
 				</div>
-				<md-switch class="md-secondary" ng-model="type.active" aria-label="{{type.name}}">
-			</div>
-		</md-list-item>
-	</md-list>
-</md-content>
+			</md-list-item>
+		</md-list>
+	</md-content>
+
+</div>
