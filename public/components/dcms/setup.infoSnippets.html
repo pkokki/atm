@@ -42,7 +42,7 @@ the activity during which they were created, such as a payment, a dispute, or a 
 				<div layout="row" layout-align="center center" layout-margin>
 					<md-icon md-svg-icon="{{type.icon || 'apps'}}"></md-icon>
 					<div flex>
-						<p>{{type.name}}</p>
+						<p>{{type.displayName}}</p>
 						<p>{{type.description}}</p>
 					</div>
 					<md-switch class="md-secondary" ng-change="togglePredefinedType(type)" ng-model="type.active" aria-label="{{type.name}}">

@@ -189,22 +189,22 @@
 			},
 			infoSnippets: {
 				types: [
-					{ code: 'DcmsAccount', name: 'Collections Account', description: '', active: false },
-					{ code: 'DcmsAdjustment', name: 'Collections Adjustment', description: '', active: false },
-					{ code: 'DcmsBankruptcy', name: 'Collections Bankruptcy', description: '', active: false },
-					{ code: 'DcmsBillTo', name: 'Collections Bill To', description: '', active: false },
-					{ code: 'DcmsCases', name: 'Collections Cases', description: '', active: false },
-					{ code: 'DcmsDelinquency', name: 'Collections Delinquency', description: '', active: false },
-					{ code: 'DcmsDispute', name: 'Collections Dispute', description: '', active: false },
-					{ code: 'DcmsDunning', name: 'Collections Dunning', description: '', active: false },
-					{ code: 'DcmsLeasingContract', name: 'Collections Leasing Contract', description: '', active: false },
-					{ code: 'DcmsLeasingInvoice', name: 'Collections Leasing Invoice', description: '', active: false },
-					{ code: 'DcmsLitigation', name: 'Collections Litigation', description: '', active: false },
-					{ code: 'DcmsPayment', name: 'Collections Payment', description: '', active: false },
-					{ code: 'DcmsPaymentReversal', name: 'Collections Payment Reversal', description: '', active: false },
-					{ code: 'DcmsPromiseToPay', name: 'Collections Promise to Pay', description: '', active: false },
-					{ code: 'DcmsRepossession', name: 'Collections Repossession', description: '', active: false },
-					{ code: 'DcmsWriteoff', name: 'Collections Writeoff', description: '', active: false },
+					{ name: 'DcmsAccount', displayName: 'Collections Account', description: '', active: false },
+					{ name: 'DcmsAdjustment', displayName: 'Collections Adjustment', description: '', active: false },
+					{ name: 'DcmsBankruptcy', displayName: 'Collections Bankruptcy', description: '', active: false },
+					{ name: 'DcmsBillTo', displayName: 'Collections Bill To', description: '', active: false },
+					{ name: 'DcmsCases', displayName: 'Collections Cases', description: '', active: false },
+					{ name: 'DcmsDelinquency', displayName: 'Collections Delinquency', description: '', active: false },
+					{ name: 'DcmsDispute', displayName: 'Collections Dispute', description: '', active: false },
+					{ name: 'DcmsDunning', displayName: 'Collections Dunning', description: '', active: false },
+					{ name: 'DcmsLeasingContract', displayName: 'Collections Leasing Contract', description: '', active: false },
+					{ name: 'DcmsLeasingInvoice', displayName: 'Collections Leasing Invoice', description: '', active: false },
+					{ name: 'DcmsLitigation', displayName: 'Collections Litigation', description: '', active: false },
+					{ name: 'DcmsPayment', displayName: 'Collections Payment', description: '', active: false },
+					{ name: 'DcmsPaymentReversal', displayName: 'Collections Payment Reversal', description: '', active: false },
+					{ name: 'DcmsPromiseToPay', displayName: 'Collections Promise to Pay', description: '', active: false },
+					{ name: 'DcmsRepossession', displayName: 'Collections Repossession', description: '', active: false },
+					{ name: 'DcmsWriteoff', displayName: 'Collections Writeoff', description: '', active: false },
 				],
 			},
 		};
@@ -731,10 +731,7 @@
 					success(registry.infoSnippetTypes);
 				}, error);
 			},
-			appendCustomInfoSnippetType: function(code, success, error) {
-			},
-			removeCustomInfoSnippetType: function(code, success, error) {
-			},
+			
 		};
 		return theService;
 	}])
@@ -1191,7 +1188,7 @@
 						for (var i=0; i<allTypes.length; i++) {
 							var targetType = allTypes[i];
 							for (var j=0; j<activeTypes.length; j++)
-								if (activeTypes[j].Name == targetType.code)
+								if (activeTypes[j].Name == targetType.name)
 									targetType.active = true;
 						}
 					}
@@ -1222,10 +1219,10 @@
 
 		$scope.togglePredefinedType = function(type) {
 			if (type.active) {
-				alert("Create " + type.code);
+				alert("Create " + JSON.stringify(type));
 			}
 			else {
-				alert("Delete " + type.code);
+				alert("Delete " + type.name);
 			}
 		};
 	}])
