@@ -1,0 +1,51 @@
+﻿<md-sidenav class="md-sidenav-right md-whiteframe-z2" md-component-id="searchSidenav">
+	<md-toolbar class="md-theme-light">
+		<h3 class="md-toolbar-tools">Search criteria</h3>
+	</md-toolbar>
+	<md-content layout-padding>
+		<form>
+			<md-input-container>
+				<label for="criteriaName">Name</label>
+				<input type="text" id="criteriaName" ng-model="criteria.name" md-sidenav-focus>
+			</md-input-container>
+			<md-input-container>
+				<label for="criteriaType">Type</label>
+				<input type="text" id="criteriaType" ng-model="criteria.type">
+			</md-input-container>
+		</form>
+		<div layout="row">
+			<md-button ng-click="search('searchSidenav', criteria)" class="md-primary">Search</md-button>
+			<md-button ng-click="closeSearch('searchSidenav')">Cancel</md-button>
+		</div>
+	</md-content>
+</md-sidenav>
+		
+<div layout="column" tabIndex="-1" role="main" flex>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>Scoring components</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" aria-label="Search" ng-click="toggleSearch('searchSidenav')">
+				<md-icon md-svg-icon="search"></md-icon>
+			</md-button>
+			<md-button class="md-icon-button" aria-label="More">
+				<md-icon md-svg-icon="more-vert"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	<md-content class="md-padding">
+		<div>
+			Preconfigured, Enabled, Function
+			<p>1</p>
+			<p>2</p>
+			<p>3</p>
+			<p>4</p>
+			<p>4</p>
+		</div>
+	</md-content>
+</div>
+
+
+
+
+

@@ -97,6 +97,23 @@
 			})
 			.state('dcms.workspace.admin', { url: '/admin', templateUrl: '/components/dcms/workspace.admin.html', })
 			.state('dcms.workspace.adminSettings', { url: '/admin/settings', templateUrl: '/components/dcms/workspace.adminSettings.html', })
+			/******************************************************************************************************************/
+			.state('dcms.admin', { url: '/admin', templateUrl: '/components/dcms/admin.html', })
+			.state('dcms.admin.questionnaire', {
+				url: '/questionnaire', 
+				templateUrl: '/components/dcms/admin.questionnaire.html', 
+				/*controller: 'DcmsAdminQuestionnaireController',*/
+			})
+			.state('dcms.admin.questionnaireScoringComponents', {
+				url: '/questionnaireScoringComponents', 
+				templateUrl: '/components/dcms/admin.questionnaireScoringComponents.html', 
+				controller: 'DcmsAdminQuestionnaireScoringComponentsController',
+			})
+			.state('dcms.admin.checklist', {
+				url: '/checklist', 
+				templateUrl: '/components/dcms/admin.checklist.html', 
+				/*controller: 'DcmsAdminChecklistController',*/
+			})
 		;
 	}])
 	
@@ -1224,5 +1241,18 @@
 			else {
 				alert("Delete " + type.name);
 			}
+		};
+	}])
+	
+	.controller('DcmsAdminQuestionnaireScoringComponentsController', ['$scope', '$mdSidenav', 'errHandler', function($scope, $mdSidenav, errHandler) {
+		$scope.toggleSearch = function(id) {
+			$mdSidenav(id).toggle();
+		};
+		$scope.closeSearch = function(id) {
+			$mdSidenav(id).close();
+		};
+		$scope.search = function(id, criteria) {
+			$mdSidenav(id).close();
+			alert(angular.toJson(criteria));
 		};
 	}])
