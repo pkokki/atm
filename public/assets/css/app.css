@@ -16,6 +16,16 @@
 }
 
 
+
+.bottomSheet .md-grid-item-content md-icon {
+	height: 48px;
+	width: 48px; 
+}
+.bottomSheet .md-grid-text {
+	padding-bottom: 5px;
+}
+
+
 /* Workaround: https://github.com/angular/material/issues/1586 */
 md-input-container > md-select {
   flex1: 1;

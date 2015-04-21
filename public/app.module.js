@@ -2,6 +2,7 @@
 		'ui.router', 
 		'atm',
 		'dcms',
+		'dcw',
 	])
 
 	.config(['$stateProvider', '$urlRouterProvider', function ($stateProvider, $urlRouterProvider) {

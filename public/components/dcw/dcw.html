@@ -1,0 +1,42 @@
+﻿<div layout="row" >
+
+	<md-sidenav class="md-sidenav-left md-whiteframe-z1" md-component-id="globalSidebar" md-is-locked-open="$mdMedia('gt-md')">
+		<md-toolbar>
+			<div class="md-toolbar-tools">
+				<h2>sidenav</h2>
+				<span flex></span>	
+				<md-button class="md-icon-button" aria-label="Close" title="Close" 
+					ng-show="!isSidenavLockedOpen('globalSidebar')" 
+					ng-click="closeSidenav('globalSidebar')">
+					<md-icon md-svg-icon="close"></md-icon>
+				</md-button>
+			</div>
+		</md-toolbar>
+		<md-content flex layout-padding>
+			<div>md-sidenav</div>
+		</md-content>
+	</md-sidenav>
+
+	<div layout="column" tabIndex="-1" role="main" flex>
+		<md-toolbar>
+			<div class="md-toolbar-tools">
+				<md-button class="md-icon-button" aria-label="Menu" title="Side menu"
+					ng-show="!isSidenavLockedOpen('globalSidebar') && !isSidenavOpen('globalSidebar')" ng-click="toggleSidenav('globalSidebar')">
+					<md-icon md-svg-icon="menu"></md-icon>
+				</md-button>
+				
+				<h1>DCW</h1>
+				
+				<span flex></span>
+				
+				<md-button class="md-icon-button" aria-label="Search" title="Search" ng-click="">
+					<md-icon md-svg-icon="search"></md-icon>
+				</md-button>
+			</div>
+		</md-toolbar>
+		<md-content flex layout-padding>
+			<div flex ui-view></div>
+		</md-content>
+	</div>
+
+</div>
