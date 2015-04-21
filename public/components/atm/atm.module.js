@@ -1,7 +1,12 @@
-﻿angular.module('app')
+﻿angular.module('atm', [
+		'ui.router', 
+		'ngMaterial',
+		'ngMessages',
+		'common',
+		
+	])
 	.config(['$stateProvider', '$urlRouterProvider', 'sidebarMenuProvider', function ($stateProvider, $urlRouterProvider, sidebarMenuProvider) {
 		$urlRouterProvider.when("/atm", "/atm/intro");
-		
 		$stateProvider
 			.state('atm', {
 				abstract: true,
@@ -67,7 +72,10 @@
 	APP RUN ***********************************************************************************************************
 	*******************************************************************************************************************/
 	
-	.run(['$rootScope', '$state', 'atmDevice', function ($rootScope, $state, atmDevice) {
+	.run(['$rootScope', '$state', 'atmDevice', 'sidebarMenu', function ($rootScope, $state, atmDevice, sidebarMenu) {
+		$rootScope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+			sidebarMenu.activate(toState.name);
+		});
 		$rootScope.$on("$stateChangeStart", function(event, toState, toParams, fromState, fromParams) {
 			if (toState.name.substr(0, 4) == 'atm.') {
 				if (!atmDevice.hasCardInSlot && toState.name != 'atm.intro') {
@@ -385,10 +393,82 @@
 		};
 	}])
 	
+	.provider('sidebarMenu', function SidebarMenuProvider() {
+		var menuItems = {};
+		
+		function SidebarMenu() {
+			var callbacks = [],
+				fireChange = function(items) {
+					for (var i = 0; i < callbacks.length; i++) {
+						callbacks[i](items);
+					}
+				};
+			
+			this.activate = function(key, value) {
+				var items = menuItems[key];
+				if (value) {
+					for (var i = 0; i < items.length; i++) {
+						var item = items[i];
+						item.url = item.url.replace(':id', value);
+					}
+				}
+				fireChange(items);
+			}
+			this.deactivate = function(key) {
+				fireChange([]);
+			}
+			
+			this.onchange = function(callback) {
+				callbacks.push(callback);
+			};
+		}
+		
+		this.registerMenuItems = function(key, items) {
+			menuItems[key] = items;
+		}
+		
+		this.$get = [function sidebarMenuFactory() {
+			return new SidebarMenu();
+		}];
+	})
 	/******************************************************************************************************************
 	CONTROLLERS *******************************************************************************************************
 	*******************************************************************************************************************/
-	.controller('AtmController', ['$scope', 'atmDevice', function ($scope, atmDevice) {
+	
+	.controller('AtmController', ['$scope', '$mdSidenav', '$mdMedia', '$mdBottomSheet', 'sidebarMenu', '$log', 'atmDevice', function ($scope, $mdSidenav, $mdMedia, $mdBottomSheet, sidebarMenu, $log, atmDevice) {
+		$scope.toggleSidebar = function() {
+			$mdSidenav('left').toggle()
+				.then(function(){
+					$log.debug("toggle left is done");
+				});
+		};
+		$scope.closeSidebar = function() {
+			$mdSidenav('left').close()
+				.then(function(){
+					$log.debug("close LEFT is done");
+				});
+		};
+		
+		$scope.isSidebarLocked = function() {
+			return false;// $mdMedia('gt-md');
+		}
+		
+		$scope.toolbarTitle = 'ATM';
+		
+		sidebarMenu.onchange(function(items) { $scope.sidebarItems = items; });
+		
+		$scope.showBottomSheet = function($event) {
+			$mdBottomSheet.show({
+				templateUrl: 'shared/bottomSheet.html',
+				//controller: 'ListBottomSheetCtrl',
+				targetEvent: $event
+			}).then(function(clickedData) {
+				$log.info('Bottom sheet clicked: ' + clickedData);
+			});
+		};
+		$log.info('App started');
+		
+	
 		$scope.validCards = [ 
 			'5105105105105100=100', /* Mastercard */
 			'4111111111111111=100', /* VISA */

@@ -1,57 +1,131 @@
-﻿<div layout="row" layout-margin layout-fill layout-padding>
-	<div flex="66">
-		<div ui-view></div>
-	</div>
-	<div flex="33" layout="column" layout-align="start center">
-		<h1>&nbsp;</h1>
+﻿<md-sidenav class="site-sidenav md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="isSidebarLocked()">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<button class="docs-menu-icon" ng-show="!isSidebarLocked()" aria-label="Close Menu" ng-click="closeSidebar()">
+				<div class="icon-navigation-grey600 icon-navigation-grey600-ic_close_grey600_24dp"></div>
+			</button>
+			<h1>Sidebar</h1>
+		</div>
+	</md-toolbar>
+	
+	<md-content class="md-padding">
+		<md-list>
+			<md-item ng-repeat="item in sidebarItems">
+				<p><md-button aria-label="{{item.title}}" ng-href="{{item.url}}">
+					<!-- Using custom inline icon until md-icon is ready. DONT USE ME! -->
+					<md-inline-list-icon icon="{{item.icon}}"></md-inline-list-icon>
+					<span class="md-inline-list-icon-label">{{ item.title }}</span>
+				</md-button></p>
+			</md-item>
+		</md-list>
+		
+		<p><md-button ng-click="showBottomSheet($event)">bottom</md-button></p>
+		<h6>
+		<ol>
+			<li>Introduction 2</li>
+			<li>Basic IFX Concepts 5</li>
+			<li>Overview of Service Provider Roles and Communications 12</li>
+			<li>Data Structures and Relationships 21</li>
+			<li>The Essential ATM/POS Activities 37</li>
+			<li>IFX to ISO Integration 39</li>
+			<li>Message Summary 78</li>
+			<li>Startup Processing and Signon 90</li>
+			<li>Identifying A Customer 107</li>
+			<li>Withdrawal Transactions 118</li>
+			<li>Balance Inquiry 166</li>
+			<li>Funds Transfer 177</li>
+			<li>Deposit Transactions 193</li>
+			<li>Payment Enclosed Transactions 250</li>
+			<li>Payment By Transfer Transactions 279</li>
+			<li>Statement Print (including, Interim & Mini Statements) Transaction 307</li>
+			<li>Purchase Transactions 341</li>
+			<li>PIN Change Transactions 361</li>
+			<li>Fee Transactions 370</li>
+			<li>Security 411</li>
+			<li>Terminal Open/Close 443</li>
+			<li>Device Statuses 460</li>
+			<li>Balancing and Replenishment Transactions 475</li>
+			<li>Deposit with Cash Back Transactions 493</li>
+			<li>Passbook Update Transactions 531</li>
+			<li>EMV Support 575</li>
+			<li>EMV PIN Unblock 629</li>
+			<li>ATM/POS Solutions - FAQ 636</li>
+		</ol>
+		</h6>
+	</md-content>
 
-		<h3>Card slot</h3>
-		<div ng-show="atm.hasCardInSlot" layout="column">
-			<md-button class="md-raised" ng-click="eject()" title="Press to eject card">{{atm.cardMagData}}</md-button>
+</md-sidenav>
+
+<div layout="column" tabIndex="-1" role="main" flex>
+	
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<button class="docs-menu-icon" ng-show="!isSidebarLocked()" aria-label="Toggle Menu" ng-click="toggleSidebar()">
+				<div class="icon-navigation-grey600 icon-navigation-grey600-ic_menu_grey600_24dp"></div>
+			</button>
+			<h1>{{toolbarTitle}}</h1>
 		</div>
-		<div ng-show="!atm.hasCardInSlot">
-			<md-select 
-				ng-model="selectedTestCard"
-				ng-change="cardSelected(selectedTestCard)"
-				placeholder="______ Test cards ______">
-				<md-optgroup label="Valid cards">
-					<md-option ng-value="card" ng-repeat="card in validCards">{{card}}</md-option>
-				</md-optgroup>
-				<md-optgroup label="Invalid cards">
-					<md-option ng-value="card" ng-repeat="card in invalidCards">{{card}}</md-option>
-				</md-optgroup>
-			</md-select>
+	</md-toolbar>
+		
+	<md-content class="md-padding">
+
+		<div layout="row" layout-margin layout-fill layout-padding>
+			<div flex="66">
+				<div ui-view></div>
+			</div>
+			<div flex="33" layout="column" layout-align="start center">
+				<h1>&nbsp;</h1>
+
+				<h3>Card slot</h3>
+				<div ng-show="atm.hasCardInSlot" layout="column">
+					<md-button class="md-raised" ng-click="eject()" title="Press to eject card">{{atm.cardMagData}}</md-button>
+				</div>
+				<div ng-show="!atm.hasCardInSlot">
+					<md-select 
+						ng-model="selectedTestCard"
+						ng-change="cardSelected(selectedTestCard)"
+						placeholder="______ Test cards ______">
+						<md-optgroup label="Valid cards">
+							<md-option ng-value="card" ng-repeat="card in validCards">{{card}}</md-option>
+						</md-optgroup>
+						<md-optgroup label="Invalid cards">
+							<md-option ng-value="card" ng-repeat="card in invalidCards">{{card}}</md-option>
+						</md-optgroup>
+					</md-select>
+				</div>
+				
+				<h3>Cash dispenser</h3>
+				<md-button class="md-raised" 
+					ng-disabled="!atm.hasCash" 
+					ng-click="takeMoney()" 
+					title="Press to take the money">{{atm.cash | currency : "€ " : 2 }}</md-button>
+				
+				
+				<h3>Keypad</h3>
+				<div layout="column">
+					<div layout="row">
+						<md-button class="md-fab md-primary" ng-click="clickKey(1)">1</md-button>
+						<md-button class="md-fab md-primary" ng-click="clickKey(2)">2</md-button>
+						<md-button class="md-fab md-primary" ng-click="clickKey(3)">3</md-button>
+					</div>
+					<div layout="row">
+						<md-button class="md-fab md-primary" ng-click="clickKey(4)">4</md-button>
+						<md-button class="md-fab md-primary" ng-click="clickKey(5)">5</md-button>
+						<md-button class="md-fab md-primary" ng-click="clickKey(6)">6</md-button>
+					</div>
+					<div layout="row">
+						<md-button class="md-fab md-primary" ng-click="clickKey(7)">7</md-button>
+						<md-button class="md-fab md-primary" ng-click="clickKey(8)">8</md-button>
+						<md-button class="md-fab md-primary" ng-click="clickKey(9)">9</md-button>
+					</div>
+					<div layout="row">
+						<md-button class="md-fab md-primary" ng-click="clickKey('DEL')" title="DEL">del</md-button>
+						<md-button class="md-fab md-primary" ng-click="clickKey('HOME')">HOME</md-button>
+						<md-button class="md-fab md-primary" ng-click="clickKey('ENTER')" title="DONE">done</md-button>
+					</div>
+				</div>
+			</div>
 		</div>
-		
-		<h3>Cash dispenser</h3>
-		<md-button class="md-raised" 
-			ng-disabled="!atm.hasCash" 
-			ng-click="takeMoney()" 
-			title="Press to take the money">{{atm.cash | currency : "€ " : 2 }}</md-button>
-		
-		
-		<h3>Keypad</h3>
-		<div layout="column">
-			<div layout="row">
-				<md-button class="md-fab md-primary" ng-click="clickKey(1)">1</md-button>
-				<md-button class="md-fab md-primary" ng-click="clickKey(2)">2</md-button>
-				<md-button class="md-fab md-primary" ng-click="clickKey(3)">3</md-button>
-			</div>
-			<div layout="row">
-				<md-button class="md-fab md-primary" ng-click="clickKey(4)">4</md-button>
-				<md-button class="md-fab md-primary" ng-click="clickKey(5)">5</md-button>
-				<md-button class="md-fab md-primary" ng-click="clickKey(6)">6</md-button>
-			</div>
-			<div layout="row">
-				<md-button class="md-fab md-primary" ng-click="clickKey(7)">7</md-button>
-				<md-button class="md-fab md-primary" ng-click="clickKey(8)">8</md-button>
-				<md-button class="md-fab md-primary" ng-click="clickKey(9)">9</md-button>
-			</div>
-			<div layout="row">
-				<md-button class="md-fab md-primary" ng-click="clickKey('DEL')" title="DEL">del</md-button>
-				<md-button class="md-fab md-primary" ng-click="clickKey('HOME')">HOME</md-button>
-				<md-button class="md-fab md-primary" ng-click="clickKey('ENTER')" title="DONE">done</md-button>
-			</div>
-		</div>
-	</div>
+
+	</md-content>
 </div>
