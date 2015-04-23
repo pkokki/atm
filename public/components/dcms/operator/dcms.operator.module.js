@@ -28,15 +28,28 @@
 			})
 		;
 	}])
+	
 	/******************************************************************************************************************
 	CONTROLLERS *******************************************************************************************************
 	*******************************************************************************************************************/
-	.controller('DcmsOperatorController', ['$scope', 'jobManager', function ($scope, jobManager) {
+	.controller('DcmsOperatorController', ['$scope', 'errHandler', 'jobManager', function ($scope, errHandler, jobManager) {
 		var vm = {
-			availableJobs: jobManager.getAvailableJobs(),
-			createJob: function(job) {
-				jobManager.requestJob(job.name);
+			availableJobTypes: [],
+			pendingJobs: [],
+			createJob: function(jobType) {
+				jobManager.createJob(jobType.name, {}, function(job) {
+					vm.refreshPendingJobs(angular.noop);
+				}, errHandler);
+			},
+			refreshPendingJobs: function() {
+				jobManager.getPendingJobs(function(jobs) {
+					vm.pendingJobs = jobs;
+				}, errHandler);
 			},
 		};
 		$scope.vm = vm;
+		
+		jobManager.getAvailableJobTypes(function(types) {
+			vm.availableJobTypes = types;
+		});
 	}])

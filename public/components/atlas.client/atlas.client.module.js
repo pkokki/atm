@@ -10,7 +10,7 @@
 			{ 
 				name: 'default', 
 				uri: 'http://atlas-id.azurewebsites.net:80/api/', 
-				credentials: { username: 'JohnDoe', password: 'JohnDoe' },
+				credentials: { username: 'DCMS_OPERATOR', password: 'DCMS_OPERATOR' },
 				active: true, 
 			}
 		]);
@@ -59,6 +59,7 @@
 				});
 				tokenRs.$save()
 					.then(function(rs) {
+						console.log('get token for ' + credentials.username);
 						rs.status = 200;
 						deferred.resolve(rs);
 					})
@@ -102,12 +103,12 @@
 	}])
 	
 	.factory('serviceBuilder', ['$q', '$window', 'oauth', 'oauthTokenService', function($q, $window, oauth, oauthTokenService) {
-		var getUriForName = function(name) {
+		var getProvider = function(name) {
 			var list = oauth.providers;
 			if (list && list.length) {
 				for (var i = 0; i < list.length; i++)
 					if (list[i].name == name)
-						return list[i].uri;
+						return list[i];
 			}
 			return null;
 		};
@@ -123,11 +124,13 @@
 						var tokens = getCachedTokens(providerName);
 						if (tokens && tokens.refresh_token) {
 							console.warn('Trying to refresh the token for provider [' + providerName + '].');
-							var baseUri = getUriForName(providerName);
-							oauthTokenService.refreshToken(baseUri, tokens.refresh_token)
-								.then(function(tokens) {
-									setCachedTokens(providerName, tokens);
-								});
+							var provider = getProvider(providerName);
+							if (provider) {
+								oauthTokenService.refreshToken(provider.uri, tokens.refresh_token)
+									.then(function(tokens) {
+										setCachedTokens(providerName, tokens);
+									});
+							}
 						}
 						else {
 							setCachedTokens(providerName, null);
@@ -178,11 +181,11 @@
 						deferred.resolve(info);
 					}
 					else {
-						var baseUri = getUriForName(providerName);
-						if (baseUri == null)
-							deferred.reject('No URI for provider ' + providerName);
+						var provider = getProvider(providerName);
+						if (provider == null)
+							deferred.reject('No provider ' + providerName);
 						oauthTokenService
-							.createToken(baseUri, { username: 'JohnDoe', password: 'JohnDoe'})
+							.createToken(provider.uri, provider.credentials)
 							.then(function(tokens) {
 								setCachedTokens(providerName, tokens);
 								template.headers.Authorization = "Bearer " + tokens.access_token;
@@ -240,14 +243,14 @@
 			$get: ['resourceBuilder', function(resourceBuilder) { 
 				var getTaskSpecificationResource = function() { 
 					return resourceBuilder.build(serviceConfig, 'taskSpecifications/:id', { id: '@id' }, {
-						//'query': { method:'GET' },
+						'query': { method:'GET' },
 						'create': { method:'POST' },
 						//'update': { method:'PUT' },
 						//'delete': { method:'DELETE' },
 					});
 				};
 				var getTaskResource = function() { 
-					return resourceBuilder.build(serviceConfig, 'taskSummaries/:id', { id: '@id' }, {
+					return resourceBuilder.build(serviceConfig, 'tasks/:id', { id: '@id' }, {
 						//'query': { method:'GET' },
 						'create': { method:'POST' },
 						//'update': { method:'PUT' },
@@ -255,7 +258,7 @@
 					});
 				};
 				var getTaskSummaryResource = function() { 
-					return resourceBuilder.build(serviceConfig, 'taskSummaries/:id', { id: '@id' }, {
+					return resourceBuilder.build(serviceConfig, 'taskSummaries', {}, {
 						'query': { method:'GET' },
 						//'create': { method:'POST' },
 						//'update': { method:'PUT' },
@@ -263,7 +266,67 @@
 					});
 				};
 				
+				var _getByCriteria = function(query, selector, page, success, error) {
+					query(page, function(result) {
+						var list = result ? result.Items : null;
+						if (list) {
+							var item = null;
+							for (var i = 0; i < list.length; i++) {
+								if (selector(list[i])) {
+									item = list[i];
+									break;
+								}
+							}
+							if (item != null) {
+								success(item);
+							}
+							else if (list.page < list.numPages) {
+								_getByCriteria(list.page + 1, name, success, error);
+							}
+							else {
+								success(null);
+							}
+						}
+						else {
+							success(null);
+						}
+					}, error);
+				};
+				
 				var theService = {
+					/** TASK SPECIFICATIONS *******************************************/
+					queryTaskSpecifications: function(page, pageSize, success, error) {
+						if (typeof(arguments[0]) === "function") {
+							error = pageSize;
+							success = page;
+							pageSize = null;
+							page = null;
+						}
+						else if (typeof(arguments[1]) === "function") {
+							error = success;
+							success = pageSize;
+							pageSize = null;
+						}
+						var params = null;
+						if (page) params = angular.extend(params || {}, { page: page });
+						if (pageSize) params = angular.extend(params || {}, { pageSize: pageSize });
+						
+						getTaskSpecificationResource().then(function(theResource) {
+							theResource.query(params, success, error);
+						}, error);
+					},
+					getOrCreateTaskSpecification: function(name, definition, success, error) {
+						_getByCriteria(theService.queryTaskSpecifications, function(item) { return item.Name == name }, 1, function(taskSpec) {
+							if (taskSpec) {
+								success(taskSpec);
+							}
+							else {
+								theService.createTaskDefinition(definition, function(taskSpec) {
+									success(taskSpec);
+								}, error);
+							}
+						}, error);
+					},
 					createTaskDefinition: function(definition, success, error) {
 						getTaskSpecificationResource().then(function(theResource) {
 							var specification = {
@@ -274,12 +337,14 @@
 							payload.$create(success, error);
 						}, error);
 					},
+					/** TASKS *******************************************/
 					createTask: function(data, success, error) {
 						getTaskResource().then(function(theResource) {
 							var payload = new theResource(data);
 							payload.$create(success, error);
 						}, error);
 					},
+					/** TASK SUMMARIES *******************************************/
 					queryTaskSummaries: function(params, success, error) {
 						if (typeof(arguments[0]) === "function") {
 							error = success;

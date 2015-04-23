@@ -18,9 +18,15 @@
 		
 		<div layout="row" layout-align="start center">
 			<md-select ng-model="selectedJob" placeholder="Select job">
-				<md-option ng-value="job" ng-repeat="job in vm.availableJobs">{{job.name}}</md-option></md-optgroup>
+				<md-option ng-value="job" ng-repeat="job in vm.availableJobTypes">{{job.name}}</md-option></md-optgroup>
 			</md-select>
 			<md-button ng-click="vm.createJob(selectedJob)" ng-disabled="!selectedJob">Create job</md-button>
+			<md-button ng-click="vm.refreshPendingJobs()">Refresh</md-button>
+			<div>Pending={{vm.pendingJobs.length}}</div>
 		</div>
+		
+		<h2>Processors</h2>
+		<md-button ng-click="vm.addProcessor()">Add processor</md-button>
+		
 	</div>
 </div>
