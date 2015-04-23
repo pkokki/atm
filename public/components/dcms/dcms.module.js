@@ -2,6 +2,8 @@
 		'ui.router', 
 		'ngMaterial',
 		'ngMessages',
+		'dcms.operator',
+		'dcms.workspace',
 	])
 	.config(['$stateProvider', '$urlRouterProvider', '$mdThemingProvider', '$mdIconProvider', function ($stateProvider, $urlRouterProvider, $mdThemingProvider, $mdIconProvider) {
 		//$mdThemingProvider.theme('altTheme')
@@ -19,8 +21,6 @@
 
 		$urlRouterProvider
 			.when("/dcms", "/dcms/home")
-			.when("/dcms/workspace", "/dcms/workspace/inbox/")
-			.when("/dcms/workspace/inbox", "/dcms/workspace/inbox/")
 			;
 		
 		$stateProvider
@@ -84,19 +84,7 @@
 			.state('dcms.setup.cmTemplates', { url: '/cmTemplates', templateUrl: '/components/dcms/setup.cmTemplates.html', })
 			.state('dcms.setup.solution', { url: '/solution', templateUrl: '/components/dcms/setup.solution.html', })
 			
-			.state('dcms.workspace', { url: '/workspace', templateUrl: '/components/dcms/workspace.html', })
-			.state('dcms.workspace.inbox', { 
-				url: '/inbox/:wq', 
-				templateUrl: '/components/dcms/workspace.inbox.html',
-				controller: 'DcmsWorkspaceInboxController',				
-			})
-			.state('dcms.workspace.inboxItem', { 
-				url: '/inbox/:wq/:id', 
-				templateUrl: '/components/dcms/workspace.inboxItem.html',
-				controller: function($scope, $stateParams) { $scope.wq = $stateParams.wq || 'my'; $scope.id = $stateParams.id; },
-			})
-			.state('dcms.workspace.admin', { url: '/admin', templateUrl: '/components/dcms/workspace.admin.html', })
-			.state('dcms.workspace.adminSettings', { url: '/admin/settings', templateUrl: '/components/dcms/workspace.adminSettings.html', })
+			
 			/******************************************************************************************************************/
 			.state('dcms.admin', { url: '/admin', templateUrl: '/components/dcms/admin.html', })
 			.state('dcms.admin.questionnaire', {
@@ -265,7 +253,7 @@
 			}
 		};
 		
-		// #REFACTOR: this two methods could be a new autonomous service
+		// #REFACTOR: these two methods could be a new autonomous service
 		var getCachedTokens = function(name) {
 			var tokens = $window.sessionStorage.getItem('oauth_tokens_' + name);
 			return JSON.parse(tokens);
@@ -924,10 +912,6 @@
 	*******************************************************************************************************************/
 	.controller('DcmsController', ['$scope', function ($scope) {
 	}])
-	.controller('DcmsWorkspaceInboxController', ['$scope', '$stateParams', function ($scope, $stateParams) {
-		$scope.wq = $stateParams.wq || 'my';
-	}])
-	
 	
 	.controller('DcmsSetupAuthenticationController', ['$scope', '$state', 'setup', function ($scope, $state, setup) {
 		$scope.oauthProviders = setup.oauthProviders;
@@ -1256,3 +1240,7 @@
 			alert(angular.toJson(criteria));
 		};
 	}])
+	
+	
+	
+	

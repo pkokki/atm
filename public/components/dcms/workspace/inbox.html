@@ -1,0 +1,44 @@
+﻿<div layout="column">
+
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			
+			<h1>{{vm.worklist.space.name}} </h1>
+			<md-select ng-model="selectedSpace" ng-change="vm.changeWorklist(selectedSpace)">
+				<md-select-label>&nbsp;</md-select-label>
+				<md-option value="{{::space.code}}" ng-repeat="space in vm.availableSpaces">{{::space.name}}</md-option>
+			</md-select>
+				
+			<span flex></span>
+			
+			<md-button class="md-icon-button" aria-label="Settings" title="Settings" ng-href="#/dcms/workspace/admin">
+				<md-icon md-svg-icon="settings"></md-icon>
+			</md-button>
+			<md-button class="md-icon-button" aria-label="Search" title="Search" ng-click="">
+				<md-icon md-svg-icon="search"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+
+	<p class="md-caption">The collector's workspace displays actionable work items (tasks) for a collector
+	based on the display nodes selected when you set up workspaces. You can organize the
+	information presented to match the operational data level your collectors work with
+	customers. Workspaces can be consolidated and displayed at the customer level,
+	account level, bill to level, or by individual delinquencies.</p>
+	
+	<div>
+		<md-list>
+			<md-list-item class="md-3-line" ng-repeat="item in vm.worklist.items" >
+				<div class="md-list-item-text">
+					<h3><a href="{{item.routes.edit}}">{{item.data.customer}}</a></h3>
+					<h4>{{item.data.info}}</h4>
+					<p> score: {{item.data.score}}, overdue: {{item.data.overdueAmount}} </p>
+				</div>
+				<md-button class="md-secondary md-icon-button" aria-label="Search" title="Search" ng-click="alert($event)">
+					<md-icon md-svg-icon="more-vert"></md-icon>
+				</md-button>
+			</md-list-item>
+		</md-list>
+	</div>
+
+</div>

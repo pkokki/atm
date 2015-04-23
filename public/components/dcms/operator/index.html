@@ -1,0 +1,26 @@
+﻿<div layout="column">
+
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			
+			<h1>Operations</h1>
+				
+			<span flex></span>
+			
+			<md-button class="md-icon-button" aria-label="Settings" title="Settings" ng-href="#/dcms">
+				<md-icon md-svg-icon="arrow-back"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	
+	<div layout-padding>
+		<h2>Jobs</h2>
+		
+		<div layout="row" layout-align="start center">
+			<md-select ng-model="selectedJob" placeholder="Select job">
+				<md-option ng-value="job" ng-repeat="job in vm.availableJobs">{{job.name}}</md-option></md-optgroup>
+			</md-select>
+			<md-button ng-click="vm.createJob(selectedJob)" ng-disabled="!selectedJob">Create job</md-button>
+		</div>
+	</div>
+</div>
