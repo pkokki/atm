@@ -39,16 +39,16 @@
 			jobTemplates = jobTemplates;
 		};
 		
-		var atlasFactory = ['taskService', 'jobTaskSpecification', function(taskService, jobTaskSpecification) {
+		var atlasFactory = ['taskServiceClient', 'jobTaskSpecification', function(taskServiceClient, jobTaskSpecification) {
 			var requestJob = function(name, data, success, error) {
-				taskService.getOrCreateTaskSpecification(jobTaskSpecification.name, jobTaskSpecification.definition, function(spec) {
+				taskServiceClient.getOrCreateTaskSpecification(jobTaskSpecification.name, jobTaskSpecification.definition, function(spec) {
 					var jobCreationData = {
 						SpecId: spec.Id,
 						SpecName: spec.Name,
 					};
 					if (data)
 						jobCreationData.Input = data;
-					taskService.createTask(jobCreationData, function(task) {
+					taskServiceClient.createTask(jobCreationData, function(task) {
 						success(task);
 					}, error);
 				}, error);
@@ -61,7 +61,7 @@
 				getAvailableJobs: getAvailableJobs,
 				requestJob: requestJob,
 				getPendingJobs: function(success, error) {
-					taskService.queryTaskSummaries({ Type: 'task', States: 'Reserved', WhereClauses: 'Name=DCMS_JOB' }, function(result) {
+					taskServiceClient.queryTaskSummaries({ Type: 'task', States: 'Reserved', WhereClauses: 'Name=DCMS_JOB' }, function(result) {
 						success(result);
 					}, error);
 				}

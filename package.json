@@ -27,6 +27,12 @@
     "serve-favicon": "^2.2.0"
   },
   "devDependencies": {
-    "grunt": "^0.4.5"
+    "canonical-path": "0.0.2",
+    "dgeni": "^0.4.1",
+    "dgeni-packages": "^0.10.13",
+    "glob": "^5.0.5",
+    "grunt": "^0.4.5",
+    "lodash": "^3.7.0",
+    "traceur": "0.0.88"
   }
 }
