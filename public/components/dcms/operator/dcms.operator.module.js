@@ -37,7 +37,7 @@
 			availableJobTypes: [],
 			pendingJobs: [],
 			createJob: function(jobType) {
-				jobManager.createJob(jobType.name, {}, function(job) {
+				jobManager.createJob(jobType, {}, function(job) {
 					vm.refreshPendingJobs(angular.noop);
 				}, errHandler);
 			},
